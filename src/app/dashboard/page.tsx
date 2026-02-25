@@ -3,39 +3,43 @@
 import { useEffect, useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
-import { Loader2, TrendingUp, AlertCircle, FileText, BadgeDollarSign } from 'lucide-react'
+import { TrendingUp, AlertCircle, FileText, BadgeDollarSign, Target } from 'lucide-react'
 import { StatusDistributionChart } from '@/components/dashboard/StatusDistributionChart'
 import { OccupancyChart } from '@/components/dashboard/OccupancyChart'
-import { Contract } from '@/types'
+import { Contract, Opportunity } from '@/types'
 
 export default function DashboardPage() {
     const { profile } = useAuth()
     const [contracts, setContracts] = useState<Contract[]>([])
+    const [opportunities, setOpportunities] = useState<Opportunity[]>([])
     const [loading, setLoading] = useState(true)
     const supabase = createClient()
 
     useEffect(() => {
-        const fetchKPIs = async () => {
+        const fetchData = async () => {
             if (!profile?.company_id) return
 
-            const { data, error } = await supabase
-                .from('contracts')
-                .select('*')
-                .eq('company_id', profile.company_id)
+            const [contractsResult, opportunitiesResult] = await Promise.all([
+                supabase.from('contracts').select('*').eq('company_id', profile.company_id),
+                supabase.from('opportunities').select('*').eq('company_id', profile.company_id)
+            ])
 
-            if (!error && data) {
-                setContracts(data as Contract[])
+            if (!contractsResult.error && contractsResult.data) {
+                setContracts(contractsResult.data as Contract[])
+            }
+            if (!opportunitiesResult.error && opportunitiesResult.data) {
+                setOpportunities(opportunitiesResult.data as Opportunity[])
             }
             setLoading(false)
         }
 
-        fetchKPIs()
+        fetchData()
     }, [profile, supabase])
 
     const stats = useMemo(() => {
         const active = contracts.filter(c => c.status === 'active').length
 
-        // Expiration check (next 30 days)
+        // Contratos expirando nos próximos 30 dias
         const today = new Date()
         const thirtyDaysLater = new Date()
         thirtyDaysLater.setDate(today.getDate() + 30)
@@ -47,8 +51,18 @@ export default function DashboardPage() {
 
         const totalValue = contracts.reduce((sum, c) => sum + (Number(c.contract_value) || 0), 0)
 
-        return { active, expiring, totalValue }
-    }, [contracts])
+        // Oportunidades abertas (não fechadas)
+        const openOpportunities = opportunities.filter(
+            o => o.stage !== 'Fechado' && o.stage !== 'closed_won' && o.stage !== 'closed_lost'
+        ).length
+
+        // Contratos com orçamento pendente
+        const pendingQuotes = contracts.filter(
+            c => c.pending_quotes && c.pending_quotes.trim() !== ''
+        ).length
+
+        return { active, expiring, totalValue, openOpportunities, pendingQuotes }
+    }, [contracts, opportunities])
 
     const statusData = useMemo(() => {
         const statuses = ['active', 'pending', 'expired']
@@ -60,21 +74,30 @@ export default function DashboardPage() {
         })).filter(d => d.value > 0)
     }, [contracts])
 
+    // Dados reais: contratos ativos por mês nos últimos 6 meses
     const occupancyData = useMemo(() => {
         const months = []
         for (let i = 5; i >= 0; i--) {
             const d = new Date()
+            d.setDate(1)
             d.setMonth(d.getMonth() - i)
-            months.push(d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''))
+            months.push({ year: d.getFullYear(), month: d.getMonth() })
         }
 
-        // Fixed mock occupancy values for purity
-        const baseValues = [85, 92, 78, 88, 95, 82]
-        return months.map((m, idx) => ({
-            month: m.toUpperCase(),
-            value: baseValues[idx % baseValues.length]
-        }))
-    }, [])
+        return months.map(({ year, month }) => {
+            const monthStart = new Date(year, month, 1)
+            const monthEnd = new Date(year, month + 1, 0)
+            const label = monthStart.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase()
+
+            const activeInMonth = contracts.filter(c => {
+                const start = new Date(c.start_date)
+                const end = new Date(c.end_date)
+                return start <= monthEnd && end >= monthStart
+            }).length
+
+            return { month: label, value: activeInMonth }
+        })
+    }, [contracts])
 
     const kpis = [
         {
@@ -102,12 +125,20 @@ export default function DashboardPage() {
             description: 'VGV total gerenciado'
         },
         {
-            label: 'Performance',
-            value: '94%',
+            label: 'Oportunidades Abertas',
+            value: stats.openOpportunities.toString(),
             icon: TrendingUp,
             color: 'from-indigo-500/10 to-indigo-500/5 text-indigo-600',
             iconColor: 'bg-indigo-500/10',
-            description: 'Taxa de ocupação'
+            description: 'Negociações em pipeline'
+        },
+        {
+            label: 'Orçamentos Pendentes',
+            value: stats.pendingQuotes.toString(),
+            icon: Target,
+            color: 'from-orange-500/10 to-orange-500/5 text-orange-600',
+            iconColor: 'bg-orange-500/10',
+            description: 'Contratos aguardando PI'
         },
     ]
 
@@ -128,7 +159,7 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 {kpis.map((kpi) => (
                     <div key={kpi.label} className="executive-card p-6 flex flex-col justify-between group cursor-default">
                         <div className="flex items-start justify-between">
@@ -199,7 +230,7 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between mb-8 border-b border-slate-100 pb-6">
                         <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                             <span className="w-2 h-2 bg-emerald-500 rounded-full" />
-                            Ocupação de Inventário (%)
+                            Contratos Ativos por Mês
                         </h3>
                         <div className="px-3 py-1 bg-emerald-50 rounded-lg text-[10px] font-black text-emerald-600 uppercase">
                             Últimos 6 meses
