@@ -201,7 +201,7 @@ export default function EditContractPage() {
                                     <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-wide">Status Atual</label>
                                     <select
                                         value={formData.status}
-                                        onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                                        onChange={(e) => setFormData({ ...formData, status: e.target.value as 'active' | 'pending' | 'expired' })}
                                         className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all font-bold text-slate-700 appearance-none cursor-pointer"
                                     >
                                         <option value="pending">PENDENTE</option>

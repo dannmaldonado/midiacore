@@ -132,7 +132,7 @@ export default function DashboardPage() {
                 {kpis.map((kpi) => (
                     <div key={kpi.label} className="executive-card p-6 flex flex-col justify-between group cursor-default">
                         <div className="flex items-start justify-between">
-                            <div className={`p-3 rounded-2xl ${kpi.iconColor} ${kpi.text} transition-transform group-hover:scale-110 duration-500`}>
+                            <div className={`p-3 rounded-2xl ${kpi.iconColor} transition-transform group-hover:scale-110 duration-500`}>
                                 <kpi.icon className="w-6 h-6" />
                             </div>
                             <div className="flex flex-col items-end">
