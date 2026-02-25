@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
 import { Contract } from '@/types'
-import { FileText, Plus, Filter, Search, Calendar, Edit2 } from 'lucide-react'
+import { FileText, Plus, Filter, Search, Calendar, Edit2, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 
 export default function ContractsPage() {
@@ -107,6 +107,7 @@ export default function ContractsPage() {
                             <tr className="bg-slate-50/50 border-b border-slate-100">
                                 <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Shopping / Ativo</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Responsável</th>
+                                <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest hidden lg:table-cell">Negociação</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Vigência</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Status</th>
                                 <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Ações</th>
@@ -116,14 +117,14 @@ export default function ContractsPage() {
                             {loading ? (
                                 Array.from({ length: 5 }).map((_, i) => (
                                     <tr key={i} className="shimmer-row">
-                                        <td colSpan={5} className="px-8 py-6">
+                                        <td colSpan={6} className="px-8 py-6">
                                             <div className="h-6 bg-slate-50 rounded-lg shimmer w-full" />
                                         </td>
                                     </tr>
                                 ))
                             ) : filteredContracts.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-8 py-32 text-center">
+                                    <td colSpan={6} className="px-8 py-32 text-center">
                                         <div className="flex flex-col items-center max-w-xs mx-auto">
                                             <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-slate-100">
                                                 <FileText className="w-10 h-10 text-slate-200" />
@@ -139,12 +140,36 @@ export default function ContractsPage() {
                                 filteredContracts.map((contract) => (
                                     <tr key={contract.id} className="hover:bg-slate-50/80 transition-all group">
                                         <td className="px-8 py-6">
-                                            <div className="flex flex-col">
+                                            <div className="flex flex-col gap-1.5">
                                                 <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase text-sm">{contract.shopping_name}</span>
                                                 <span className="text-[11px] text-slate-400 font-bold tracking-tight uppercase">{contract.media_type}</span>
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    {contract.pending_quotes && (
+                                                        <span className="px-2 py-1 bg-amber-50 text-amber-600 border border-amber-100 rounded-lg text-[10px] font-black uppercase">
+                                                            Orçamento Pendente
+                                                        </span>
+                                                    )}
+                                                    {contract.layouts_url && (
+                                                        <a
+                                                            href={contract.layouts_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            className="inline-flex items-center gap-1 px-2 py-1 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-lg text-[10px] font-black uppercase hover:bg-indigo-100 transition-colors"
+                                                        >
+                                                            <ExternalLink className="w-2.5 h-2.5" />
+                                                            Layouts
+                                                        </a>
+                                                    )}
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6 text-slate-600 text-sm font-bold">{contract.responsible_person}</td>
+                                        <td className="px-8 py-6 hidden lg:table-cell">
+                                            <span className="text-[11px] text-slate-500 font-medium">
+                                                {contract.negotiation || <span className="text-slate-300">—</span>}
+                                            </span>
+                                        </td>
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-tighter">
                                                 <Calendar className="w-3.5 h-3.5 text-indigo-400" />
