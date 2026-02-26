@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { Contract } from '@/types'
 import { FileText, Plus, Filter, Search, Calendar, Edit2, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
+import { ContractModal } from '@/components/dashboard/ContractModal'
 
 export default function ContractsPage() {
     const { profile } = useAuth()
@@ -15,6 +16,7 @@ export default function ContractsPage() {
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
     const [statusFilter, setStatusFilter] = useState('all')
+    const [selectedContract, setSelectedContract] = useState<Contract | null>(null)
     const supabase = createClient()
 
     useEffect(() => {
@@ -140,7 +142,7 @@ export default function ContractsPage() {
                                 </tr>
                             ) : (
                                 filteredContracts.map((contract) => (
-                                    <tr key={contract.id} className="hover:bg-slate-50/80 transition-all group">
+                                    <tr key={contract.id} onClick={() => setSelectedContract(contract)} className="hover:bg-slate-50/80 transition-all group cursor-pointer">
                                         <td className="px-8 py-6">
                                             <div className="flex flex-col gap-1.5">
                                                 <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase text-sm">{contract.shopping_name}</span>
@@ -182,21 +184,29 @@ export default function ContractsPage() {
                                         </td>
                                         <td className="px-8 py-6">
                                             <div className="flex justify-center">
-                                                <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border shadow-sm ${contract.status === 'active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-emerald-500/5' :
-                                                    contract.status === 'pending' ? 'bg-amber-50 text-amber-600 border-amber-100 shadow-amber-500/5' :
-                                                        'bg-slate-50 text-slate-500 border-slate-200 shadow-slate-500/5'
-                                                    }`}>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        setStatusFilter(contract.status)
+                                                    }}
+                                                    className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border shadow-sm cursor-pointer hover:shadow-md transition-all ${contract.status === 'active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-emerald-500/5' :
+                                                        contract.status === 'pending' ? 'bg-amber-50 text-amber-600 border-amber-100 shadow-amber-500/5' :
+                                                            'bg-slate-50 text-slate-500 border-slate-200 shadow-slate-500/5'
+                                                        }`}>
                                                     {contract.status === 'active' ? 'Ativo' : contract.status === 'pending' ? 'Pendente' : 'Expirado'}
-                                                </span>
+                                                </button>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6 text-right">
-                                            <Link
-                                                href={`/dashboard/contracts/${contract.id}`}
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    setSelectedContract(contract)
+                                                }}
                                                 className="inline-flex items-center justify-center w-10 h-10 hover:bg-white rounded-xl text-slate-400 hover:text-indigo-600 transition-all border border-transparent hover:border-slate-100 shadow-none hover:shadow-sm"
                                             >
                                                 <Edit2 className="w-4 h-4" />
-                                            </Link>
+                                            </button>
                                         </td>
                                     </tr>
                                 ))
@@ -205,6 +215,23 @@ export default function ContractsPage() {
                     </table>
                 </div>
             </div>
+
+            {/* Contract Modal */}
+            {selectedContract && (
+                <ContractModal
+                    contract={selectedContract}
+                    onClose={() => setSelectedContract(null)}
+                    onSave={(updatedContract) => {
+                        setContracts(contracts.map(c => c.id === updatedContract.id ? updatedContract : c))
+                    }}
+                    onDelete={(id) => {
+                        setContracts(contracts.filter(c => c.id !== id))
+                    }}
+                    onFilterByStatus={(status) => {
+                        setStatusFilter(status)
+                    }}
+                />
+            )}
         </div>
     )
 }

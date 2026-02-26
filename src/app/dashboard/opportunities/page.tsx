@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { Opportunity } from '@/types'
 import { TrendingUp, Plus, Filter, Search, Edit2 } from 'lucide-react'
 import Link from 'next/link'
+import { OpportunityModal } from '@/components/dashboard/OpportunityModal'
 
 const STAGE_OPTIONS = [
     'Em negociação',
@@ -23,6 +24,7 @@ export default function OpportunitiesPage() {
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
     const [stageFilter, setStageFilter] = useState('all')
+    const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null)
     const supabase = createClient()
 
     useEffect(() => {
@@ -147,7 +149,7 @@ export default function OpportunitiesPage() {
                                 </tr>
                             ) : (
                                 filteredOpportunities.map((opp) => (
-                                    <tr key={opp.id} className="hover:bg-slate-50/80 transition-all group">
+                                    <tr key={opp.id} onClick={() => setSelectedOpportunity(opp)} className="hover:bg-slate-50/80 transition-all group cursor-pointer">
                                         <td className="px-8 py-6">
                                             <div className="flex flex-col gap-1.5">
                                                 <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase text-sm">{opp.shopping_name}</span>
@@ -174,18 +176,27 @@ export default function OpportunitiesPage() {
                                         <td className="px-8 py-6 text-slate-600 text-sm font-bold">{opp.responsible_person}</td>
                                         <td className="px-8 py-6">
                                             <div className="flex justify-center">
-                                                <span className="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border shadow-sm bg-slate-50 text-slate-600 border-slate-200">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        setStageFilter(opp.stage)
+                                                    }}
+                                                    className="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border shadow-sm bg-slate-50 text-slate-600 border-slate-200 cursor-pointer hover:shadow-md transition-all"
+                                                >
                                                     {opp.stage}
-                                                </span>
+                                                </button>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6 text-right">
-                                            <Link
-                                                href={`/dashboard/opportunities/${opp.id}`}
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    setSelectedOpportunity(opp)
+                                                }}
                                                 className="inline-flex items-center justify-center w-10 h-10 hover:bg-white rounded-xl text-slate-400 hover:text-indigo-600 transition-all border border-transparent hover:border-slate-100 shadow-none hover:shadow-sm"
                                             >
                                                 <Edit2 className="w-4 h-4" />
-                                            </Link>
+                                            </button>
                                         </td>
                                     </tr>
                                 ))
@@ -194,6 +205,23 @@ export default function OpportunitiesPage() {
                     </table>
                 </div>
             </div>
+
+            {/* Opportunity Modal */}
+            {selectedOpportunity && (
+                <OpportunityModal
+                    opportunity={selectedOpportunity}
+                    onClose={() => setSelectedOpportunity(null)}
+                    onSave={(updatedOpp) => {
+                        setOpportunities(opportunities.map(o => o.id === updatedOpp.id ? updatedOpp : o))
+                    }}
+                    onDelete={(id) => {
+                        setOpportunities(opportunities.filter(o => o.id !== id))
+                    }}
+                    onFilterByStage={(stage) => {
+                        setStageFilter(stage)
+                    }}
+                />
+            )}
         </div>
     )
 }
