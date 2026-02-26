@@ -85,19 +85,19 @@ export function Header() {
                 }
 
                 const results: SearchResult[] = [
-                    ...(contracts.data || [] as ContractData[]).map((c) => ({
+                    ...(contracts.data || [] as ContractData[]).map((c: ContractData) => ({
                         id: c.id,
                         name: c.shopping_name,
                         type: 'contract' as const,
                         created_at: c.created_at,
                     })),
-                    ...(opportunities.data || [] as OpportunityData[]).map((o) => ({
+                    ...(opportunities.data || [] as OpportunityData[]).map((o: OpportunityData) => ({
                         id: o.id,
                         name: o.shopping_name,
                         type: 'opportunity' as const,
                         created_at: o.created_at,
                     })),
-                    ...(contacts.data || [] as ContactData[]).map((c) => ({
+                    ...(contacts.data || [] as ContactData[]).map((c: ContactData) => ({
                         id: c.id,
                         name: c.full_name,
                         type: 'contact' as const,

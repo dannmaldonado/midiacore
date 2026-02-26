@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
 import { useRouter, useParams } from 'next/navigation'
-import { ArrowLeft, Save, Loader2, FileText, BadgeDollarSign, Calendar, Users, Tag, X, Link2, ExternalLink, Trash2 } from 'lucide-react'
+import { ArrowLeft, Save, Loader2, FileText, BadgeDollarSign, Calendar, Users, Tag, X, Link2, ExternalLink, Trash2, GitBranch } from 'lucide-react'
 import Link from 'next/link'
 import { Contract } from '@/types'
 
@@ -174,13 +174,22 @@ export default function EditContractPage() {
                         <p className="text-slate-500 mt-1 font-medium">Gestão detalhada do ativo de mídia.</p>
                     </div>
                 </div>
-                <button
-                    onClick={handleDelete}
-                    className="flex items-center gap-2 px-6 py-3 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all text-xs font-black uppercase tracking-widest border border-transparent hover:border-red-100"
-                >
-                    <Trash2 className="w-4 h-4" />
-                    Excluir
-                </button>
+                <div className="flex items-center gap-3">
+                    <Link
+                        href={`/dashboard/contracts/${contractId}/approvals`}
+                        className="flex items-center gap-2 px-6 py-3 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-2xl transition-all text-xs font-black uppercase tracking-widest border border-transparent hover:border-indigo-100"
+                    >
+                        <GitBranch className="w-4 h-4" />
+                        Workflow
+                    </Link>
+                    <button
+                        onClick={handleDelete}
+                        className="flex items-center gap-2 px-6 py-3 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-2xl transition-all text-xs font-black uppercase tracking-widest border border-transparent hover:border-red-100"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                        Excluir
+                    </button>
+                </div>
             </div>
 
             <div className="executive-card p-10 bg-white/80 backdrop-blur-md">

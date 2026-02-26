@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { type User } from '@supabase/supabase-js'
+import { type User, type Session, type AuthChangeEvent } from '@supabase/supabase-js'
 
 import { Profile } from '@/types'
 
@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, session) => {
+            async (event: AuthChangeEvent, session: Session | null) => {
                 const currentUser = session?.user ?? null
 
                 if (isMounted) {
@@ -80,13 +80,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
         )
 
-        // Fallback: se auth não completar em 3 segundos, assumir não autenticado
+        // Fallback: se auth não completar em 8 segundos, assumir não autenticado
+        // (aumentado de 3s para 8s para lidar com lock issues do Supabase)
         timeoutId = setTimeout(() => {
             if (isMounted) {
                 console.warn('[Auth] Timeout ao aguardar sessão')
                 setLoading(false)
             }
-        }, 3000)
+        }, 8000)
 
         return () => {
             isMounted = false
