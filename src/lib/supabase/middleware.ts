@@ -54,20 +54,7 @@ export async function updateSession(request: NextRequest) {
         }
     )
 
-    const { data: { user } } = await supabase.auth.getUser()
-
-    // Protege rotas /dashboard/* no servidor
-    const isDashboardRoute = request.nextUrl.pathname.startsWith('/dashboard')
-    if (isDashboardRoute && !user) {
-        const loginUrl = new URL('/login', request.url)
-        return NextResponse.redirect(loginUrl)
-    }
-
-    // Redireciona usuário autenticado que tenta acessar /login
-    if (request.nextUrl.pathname === '/login' && user) {
-        const dashboardUrl = new URL('/dashboard', request.url)
-        return NextResponse.redirect(dashboardUrl)
-    }
+    await supabase.auth.getUser()
 
     return response
 }
