@@ -3,7 +3,7 @@
 import { Header } from "@/components/dashboard/Header";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { useAuth } from "@/hooks/use-auth";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -12,14 +12,22 @@ export default function DashboardLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const { user, loading } = useAuth();
+    const { user, loading, isViewer } = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
 
     useEffect(() => {
         if (!loading && !user) {
             router.push("/login");
         }
     }, [user, loading, router]);
+
+    // Protect /new routes for viewers
+    useEffect(() => {
+        if (!loading && isViewer && pathname.includes('/new')) {
+            router.push('/dashboard');
+        }
+    }, [loading, isViewer, pathname, router]);
 
     if (loading) {
         return (

@@ -1,6 +1,8 @@
-import { LayoutDashboard, FileText, Users, TrendingUp, LogOut } from 'lucide-react'
+import { LayoutDashboard, FileText, Users, TrendingUp, LogOut, Settings } from 'lucide-react'
 import Link from 'next/link'
+import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
+import { SettingsModal } from './SettingsModal'
 
 const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
@@ -10,9 +12,16 @@ const menuItems = [
 ]
 
 export function Sidebar() {
-    const { signOut } = useAuth()
+    const { signOut, profile } = useAuth()
+    const [showSettings, setShowSettings] = useState(false)
 
     return (
+        <>
+            <SettingsModal
+                isOpen={showSettings}
+                onClose={() => setShowSettings(false)}
+                profile={profile}
+            />
         <aside className="w-64 bg-slate-900 border-r border-white/5 text-white flex flex-col h-screen fixed left-0 top-0 z-20 shadow-2xl">
             <div className="p-8 pb-10">
                 <div className="flex items-center gap-3 mb-6">
@@ -43,7 +52,14 @@ export function Sidebar() {
                 </nav>
             </div>
 
-            <div className="mt-auto p-6 border-t border-white/5 bg-slate-950/50 backdrop-blur-sm">
+            <div className="mt-auto p-6 border-t border-white/5 bg-slate-950/50 backdrop-blur-sm space-y-2">
+                <button
+                    onClick={() => setShowSettings(true)}
+                    className="flex items-center gap-3 px-4 py-3 w-full rounded-xl hover:bg-slate-800 transition-all group"
+                >
+                    <Settings className="w-5 h-5 group-hover:text-indigo-400 transition-colors" />
+                    <span className="text-sm font-bold">Configurações</span>
+                </button>
                 <button
                     onClick={signOut}
                     className="flex items-center gap-3 px-4 py-3 w-full rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-all group"
@@ -53,5 +69,6 @@ export function Sidebar() {
                 </button>
             </div>
         </aside>
+        </>
     )
 }

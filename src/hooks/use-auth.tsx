@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { type User } from '@supabase/supabase-js'
@@ -11,6 +11,10 @@ interface AuthContextType {
     user: User | null
     profile: Profile | null
     loading: boolean
+    isAdmin: boolean
+    isEditor: boolean
+    isViewer: boolean
+    canEdit: boolean
     signOut: () => Promise<void>
 }
 
@@ -18,6 +22,10 @@ const AuthContext = createContext<AuthContextType>({
     user: null,
     profile: null,
     loading: true,
+    isAdmin: false,
+    isEditor: false,
+    isViewer: false,
+    canEdit: false,
     signOut: async () => { },
 })
 
@@ -63,13 +71,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, [supabase])
 
-    const signOut = async () => {
+    const signOut = useCallback(async () => {
         await supabase.auth.signOut()
         router.push('/login')
-    }
+    }, [supabase, router])
+
+    const authValue = useMemo(() => ({
+        user,
+        profile,
+        loading,
+        isAdmin: profile?.role === 'admin',
+        isEditor: profile?.role === 'editor',
+        isViewer: profile?.role === 'viewer',
+        canEdit: profile?.role === 'admin' || profile?.role === 'editor',
+        signOut,
+    }), [profile, user, loading, signOut])
 
     return (
-        <AuthContext.Provider value={{ user, profile, loading, signOut }}>
+        <AuthContext.Provider value={authValue}>
             {children}
         </AuthContext.Provider>
     )

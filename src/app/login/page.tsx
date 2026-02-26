@@ -144,12 +144,12 @@ export default function LoginPage() {
                 </div>
 
                 <div className="mt-10 flex flex-col items-center gap-2">
-                    <p className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        Não possui acesso?
+                    <p className="text-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                        Acesso Restrito
                     </p>
-                    <button className="text-[11px] font-black text-slate-900 border-b-2 border-slate-900 pb-0.5 hover:text-indigo-600 hover:border-indigo-600 transition-all">
-                        Solicitar conta corporativa
-                    </button>
+                    <p className="text-center text-[9px] text-slate-400 uppercase tracking-tight">
+                        Contate o administrador para receber seu convite
+                    </p>
                 </div>
             </div>
 

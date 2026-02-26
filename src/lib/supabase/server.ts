@@ -1,7 +1,21 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
-export async function createClient() {
+interface CreateClientOptions {
+    admin?: boolean
+}
+
+export async function createClient(options?: CreateClientOptions) {
+    // Admin mode: uses SERVICE_ROLE_KEY (no session handling)
+    if (options?.admin) {
+        return createSupabaseClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+            process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-service-key'
+        )
+    }
+
+    // Standard mode: uses ANON_KEY with session handling
     const cookieStore = await cookies()
 
     return createServerClient(

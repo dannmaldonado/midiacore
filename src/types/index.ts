@@ -5,12 +5,14 @@ export interface Company {
     created_at: string
 }
 
+export type Role = 'admin' | 'editor' | 'viewer'
+
 export interface Profile {
     id: string
     company_id: string
     full_name: string | null
     avatar_url: string | null
-    role: 'admin' | 'user'
+    role: Role
     created_at: string
 }
 
