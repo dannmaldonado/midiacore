@@ -1,0 +1,83 @@
+epic_id: 3
+epic_name: "Workflow de Aprovação + Relatórios Executivos"
+epic_status: "Initialized"
+created_at: 2026-02-26
+owner: "@sm (River)"
+description: |
+  Epic 3 implementa:
+  - Workflow de aprovação para contratos com etapas, SLAs e notificações
+  - Relatórios detalhados de contratos e oportunidades
+  - Dashboard executivo com KPIs avançados e trending
+
+stories:
+  - story_id: 3.1
+    title: "Workflow de Aprovação — Estrutura Base"
+    status: "Draft"
+    executor: "@dev"
+    estimated_points: 5
+    description: "Criar página e UI para workflow de aprovação com cards de etapas"
+
+  - story_id: 3.2
+    title: "Workflow de Aprovação — Notificações e SLA"
+    status: "Draft"
+    executor: "@dev"
+    estimated_points: 3
+    description: "Implementar notificações e alertas de SLA para aprovações"
+
+  - story_id: 3.3
+    title: "Relatório de Contratos — Análise e Exportação"
+    status: "Draft"
+    executor: "@dev"
+    estimated_points: 5
+    description: "Criar página de relatórios com gráficos de contratos e export"
+
+  - story_id: 3.4
+    title: "Relatório de Oportunidades — Pipeline e Previsão"
+    status: "Draft"
+    executor: "@dev"
+    estimated_points: 4
+    description: "Criar página de relatórios com análise de oportunidades"
+
+  - story_id: 3.5
+    title: "Dashboard Executivo — KPIs Avançados e Insights"
+    status: "Draft"
+    executor: "@dev"
+    estimated_points: 4
+    description: "Melhorar dashboard principal com KPIs trending e sparklines"
+
+dependencies:
+  - epic: 1
+    reason: "Requer schema base (contracts, opportunities, approval_workflows)"
+  - epic: 2
+    reason: "Requer auth system e notificações (Story 2.1)"
+
+estimated_total_points: 21
+
+development_order:
+  1: "3.1 — Estrutura base de workflow"
+  2: "3.2 — Notificações inteligentes"
+  3: "3.5 — Melhorar dashboard (menor risco)"
+  4: "3.3 — Relatório de contratos"
+  5: "3.4 — Relatório de oportunidades"
+
+notes: |
+  - All charts use Recharts library (already in package.json)
+  - Workflow steps are hard-coded (no dynamic workflow builder)
+  - SLA times are configurable but hard-coded initially
+  - Reports accessible to all roles (viewers read-only)
+  - Email notifications optional (depends on Supabase config)
+
+qa_checklist:
+  - "[ ] All stories have passing build/lint/typecheck"
+  - "[ ] Charts render correctly on different screen sizes"
+  - "[ ] Filtering and export features work as expected"
+  - "[ ] RLS validated for all queries"
+  - "[ ] Trending calculations are accurate"
+  - "[ ] Performance tested with large datasets (200+ records)"
+  - "[ ] Accessibility compliance (keyboard nav, ARIA labels)"
+
+deployment_considerations:
+  - "Recharts is production-ready (v2.10+)"
+  - "No new database migrations required (tables already exist)"
+  - "Email setup is optional, notification system works without it"
+  - "Recommend CDN caching for report pages (cache busting on data change)"
