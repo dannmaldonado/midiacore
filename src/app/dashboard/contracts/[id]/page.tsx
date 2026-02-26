@@ -129,6 +129,7 @@ export default function EditContractPage() {
     }
 
     const handleDelete = async () => {
+        if (!profile?.company_id) return
         if (!window.confirm('Tem certeza que deseja excluir este contrato?')) return
 
         setSaving(true)
@@ -137,6 +138,7 @@ export default function EditContractPage() {
                 .from('contracts')
                 .delete()
                 .eq('id', contractId)
+                .eq('company_id', profile.company_id)
 
             if (error) throw error
             router.push('/dashboard/contracts')

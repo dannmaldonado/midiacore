@@ -112,6 +112,7 @@ export default function EditOpportunityPage() {
     }
 
     const handleDelete = async () => {
+        if (!profile?.company_id) return
         if (!window.confirm('Tem certeza que deseja excluir esta oportunidade?')) return
 
         setSaving(true)
@@ -120,6 +121,7 @@ export default function EditOpportunityPage() {
                 .from('opportunities')
                 .delete()
                 .eq('id', opportunityId)
+                .eq('company_id', profile.company_id)
 
             if (error) throw error
             router.push('/dashboard/opportunities')

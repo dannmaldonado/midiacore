@@ -52,9 +52,13 @@ export default function ContactsPage() {
     }, [profile, supabase])
 
     const copyToClipboard = async (text: string, field: string) => {
-        await navigator.clipboard.writeText(text)
-        setCopied(field)
-        setTimeout(() => setCopied(null), 2000)
+        try {
+            await navigator.clipboard.writeText(text)
+            setCopied(field)
+            setTimeout(() => setCopied(null), 2000)
+        } catch {
+            // Clipboard API indisponível
+        }
     }
 
     const filteredContacts = useMemo(() => {

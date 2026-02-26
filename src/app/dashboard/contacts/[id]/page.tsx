@@ -96,6 +96,7 @@ export default function EditContactPage() {
     }
 
     const handleDelete = async () => {
+        if (!profile?.company_id) return
         if (!window.confirm('Tem certeza que deseja excluir este contato?')) return
 
         setSaving(true)
@@ -104,6 +105,7 @@ export default function EditContactPage() {
                 .from('contacts')
                 .delete()
                 .eq('id', contactId)
+                .eq('company_id', profile.company_id)
 
             if (error) throw error
             router.push('/dashboard/contacts')
