@@ -143,14 +143,14 @@ export function OpportunityModal({
         return (
             <div
                 ref={modalRef}
-                className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
+                className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4"
                 onClick={handleOverlayClick}
             >
-                <div className="executive-card w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+                <div className="executive-card w-full max-w-3xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto flex flex-col">
                     {/* Header */}
-                    <div className="sticky top-0 p-6 border-b border-slate-100 bg-white/80 backdrop-blur-sm flex items-center justify-between gap-4">
+                    <div className="sticky top-0 p-3 sm:p-6 border-b border-slate-100 bg-white/80 backdrop-blur-sm flex items-center justify-between gap-2 sm:gap-4 shrink-0">
                         <div className="flex-1 min-w-0">
-                            <h3 className="text-xl font-black text-slate-900 font-display truncate">
+                            <h3 className="text-lg sm:text-xl font-black text-slate-900 font-display truncate">
                                 {formData.shopping_name}
                             </h3>
                             {formData.frequency && (
@@ -177,7 +177,7 @@ export function OpportunityModal({
                     </div>
 
                     {/* Content */}
-                    <div className="p-6 space-y-6 pb-20">
+                    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 flex-1 overflow-y-auto">
                         {/* Seção 1: Identificação */}
                         <div className="space-y-4">
                             <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Identificação</h4>
@@ -444,28 +444,29 @@ export function OpportunityModal({
                 </div>
 
                 {/* Footer Actions */}
-                <div className="sticky bottom-0 p-6 border-t border-slate-100 bg-white/80 backdrop-blur-sm flex items-center justify-between gap-4">
+                <div className="sticky bottom-0 p-3 sm:p-6 border-t border-slate-100 bg-white/80 backdrop-blur-sm flex flex-col-reverse sm:flex-row items-center justify-between gap-2 sm:gap-4 shrink-0">
                     <button
                         onClick={handleDelete}
                         disabled={deleting || saving}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-red-50 text-red-600 border border-red-200 rounded-xl text-sm font-bold hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-red-50 text-red-600 border border-red-200 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all order-3 sm:order-1"
                     >
-                        <Trash2 className="w-4 h-4" />
-                        DELETAR
+                        <Trash2 className="w-3.5 sm:w-4 h-3.5 sm:h-4" />
+                        <span className="hidden sm:inline">DELETAR</span>
+                        <span className="sm:hidden">DEL</span>
                     </button>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 w-full sm:w-auto order-1 sm:order-2">
                         <button
                             onClick={onClose}
                             disabled={saving}
-                            className="px-6 py-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl text-sm font-bold hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            className="flex-1 sm:flex-none px-3 sm:px-6 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                         >
                             CANCELAR
                         </button>
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-3 sm:px-6 py-2 sm:py-2.5 bg-indigo-600 text-white rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                         >
                             {saving ? 'SALVANDO...' : 'SALVAR'}
                         </button>
