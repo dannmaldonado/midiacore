@@ -2,10 +2,28 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-blue: #2563eb;
-  --color-brand-navy: #0f172a;
-  --color-brand-indigo: #4f46e5;
+  /* ── Lojas Torra brand tokens ── */
+  --color-brand-blue: #FF5000;
+  --color-brand-navy: #0D0E2E;
+  --color-brand-indigo: #FF5000;
   --color-brand-slate: #64748b;
+
+  /* ── Paleta indigo → laranja Torra (#FF5000) ── */
+  --color-indigo-50:  #fff2ee;
+  --color-indigo-100: #ffe4d9;
+  --color-indigo-200: #ffcbb8;
+  --color-indigo-300: #ffa080;
+  --color-indigo-400: #ff7040;
+  --color-indigo-500: #ff5000;
+  --color-indigo-600: #e64800;
+  --color-indigo-700: #cc4000;
+  --color-indigo-800: #a33300;
+  --color-indigo-900: #802800;
+  --color-indigo-950: #4d1800;
+
+  /* ── Purple → laranja escuro (gradientes de avatar) ── */
+  --color-purple-500: #e64800;
+  --color-purple-600: #cc4000;
 
   --shadow-executive: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
   --shadow-executive-hover: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.08);
@@ -13,22 +31,22 @@
 
 :root {
   --background: #fcfdfe;
-  --foreground: #0f172a;
+  --foreground: #0D0E2E;
   --card: #ffffff;
-  --card-foreground: #0f172a;
-  --primary: #4f46e5;
+  --card-foreground: #0D0E2E;
+  --primary: #FF5000;
   --primary-foreground: #ffffff;
   --secondary: #f8fafc;
-  --secondary-foreground: #0f172a;
+  --secondary-foreground: #0D0E2E;
   --muted: #f8fafc;
   --muted-foreground: #64748b;
-  --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
+  --accent: #fff2ee;
+  --accent-foreground: #0D0E2E;
   --destructive: #ef4444;
   --destructive-foreground: #f8fafc;
   --border: #f1f5f9;
   --input: #f1f5f9;
-  --ring: #4f46e5;
+  --ring: #FF5000;
   --radius: 1rem;
 }
 
@@ -61,7 +79,7 @@ h4,
 .executive-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-executive-hover);
-  border-color: rgba(79, 70, 229, 0.1);
+  border-color: rgba(255, 80, 0, 0.1);
 }
 
 .glass-effect {
