@@ -66,13 +66,15 @@ export default function OpportunitiesPage() {
                     <h2 className="text-4xl font-black tracking-tight text-slate-900 font-display">Oportunidades</h2>
                     <p className="text-slate-500 mt-2 font-medium">Pipeline de negociações de mídia por shopping center.</p>
                 </div>
-                <Link
-                    href="/dashboard/opportunities/new"
-                    className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-2xl text-sm font-black hover:scale-105 transition-all shadow-lg shadow-indigo-600/20 active:scale-95"
-                >
-                    <Plus className="w-4 h-4" />
-                    NOVA OPORTUNIDADE
-                </Link>
+                {profile?.role !== 'viewer' && (
+                    <Link
+                        href="/dashboard/opportunities/new"
+                        className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-2xl text-sm font-black hover:scale-105 transition-all shadow-lg shadow-indigo-600/20 active:scale-95"
+                    >
+                        <Plus className="w-4 h-4" />
+                        NOVA OPORTUNIDADE
+                    </Link>
+                )}
             </div>
 
             <div className="executive-card">
@@ -188,15 +190,17 @@ export default function OpportunitiesPage() {
                                             </div>
                                         </td>
                                         <td className="px-8 py-6 text-right">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    setSelectedOpportunity(opp)
-                                                }}
-                                                className="inline-flex items-center justify-center w-10 h-10 hover:bg-white rounded-xl text-slate-400 hover:text-indigo-600 transition-all border border-transparent hover:border-slate-100 shadow-none hover:shadow-sm"
-                                            >
-                                                <Edit2 className="w-4 h-4" />
-                                            </button>
+                                            {profile?.role !== 'viewer' && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        setSelectedOpportunity(opp)
+                                                    }}
+                                                    className="inline-flex items-center justify-center w-10 h-10 hover:bg-white rounded-xl text-slate-400 hover:text-indigo-600 transition-all border border-transparent hover:border-slate-100 shadow-none hover:shadow-sm"
+                                                >
+                                                    <Edit2 className="w-4 h-4" />
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))

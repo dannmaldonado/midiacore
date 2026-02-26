@@ -37,36 +37,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const supabase = useMemo(() => createClient(), [])
 
     useEffect(() => {
-        const fetchProfile = async (userId: string) => {
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', userId)
-                .single()
+        let isMounted = true
+        let timeoutId: NodeJS.Timeout
 
-            if (!error && data) {
-                setProfile(data)
-            } else if (error) {
-                console.error('[Auth] Falha ao carregar perfil:', error.message)
+        const fetchProfile = async (userId: string) => {
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', userId)
+                    .single()
+
+                if (!error && data && isMounted) {
+                    setProfile(data)
+                } else if (error && isMounted) {
+                    console.error('[Auth] Falha ao carregar perfil:', error.message)
+                }
+            } catch (err) {
+                if (isMounted) {
+                    console.error('[Auth] Erro ao buscar perfil:', err)
+                }
             }
         }
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, session) => {
                 const currentUser = session?.user ?? null
-                setUser(currentUser)
 
-                if (currentUser) {
-                    await fetchProfile(currentUser.id)
-                } else {
-                    setProfile(null)
+                if (isMounted) {
+                    setUser(currentUser)
+
+                    if (currentUser) {
+                        await fetchProfile(currentUser.id)
+                    } else {
+                        setProfile(null)
+                    }
+
+                    setLoading(false)
+                    clearTimeout(timeoutId)
                 }
-
-                setLoading(false)
             }
         )
 
+        // Fallback: se auth não completar em 3 segundos, assumir não autenticado
+        timeoutId = setTimeout(() => {
+            if (isMounted) {
+                console.warn('[Auth] Timeout ao aguardar sessão')
+                setLoading(false)
+            }
+        }, 3000)
+
         return () => {
+            isMounted = false
+            clearTimeout(timeoutId)
             subscription.unsubscribe()
         }
     }, [supabase])

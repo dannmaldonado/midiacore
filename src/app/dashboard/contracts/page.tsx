@@ -58,13 +58,15 @@ export default function ContractsPage() {
                     <h2 className="text-4xl font-black tracking-tight text-slate-900 font-display">Contratos</h2>
                     <p className="text-slate-500 mt-2 font-medium">Gestão operacional de veiculações e ativos de mídia.</p>
                 </div>
-                <Link
-                    href="/dashboard/contracts/new"
-                    className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-2xl text-sm font-black hover:scale-105 transition-all shadow-lg shadow-indigo-600/20 active:scale-95"
-                >
-                    <Plus className="w-4 h-4" />
-                    NOVO CONTRATO
-                </Link>
+                {profile?.role !== 'viewer' && (
+                    <Link
+                        href="/dashboard/contracts/new"
+                        className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-2xl text-sm font-black hover:scale-105 transition-all shadow-lg shadow-indigo-600/20 active:scale-95"
+                    >
+                        <Plus className="w-4 h-4" />
+                        NOVO CONTRATO
+                    </Link>
+                )}
             </div>
 
             <div className="executive-card">
@@ -198,15 +200,17 @@ export default function ContractsPage() {
                                             </div>
                                         </td>
                                         <td className="px-8 py-6 text-right">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    setSelectedContract(contract)
-                                                }}
-                                                className="inline-flex items-center justify-center w-10 h-10 hover:bg-white rounded-xl text-slate-400 hover:text-indigo-600 transition-all border border-transparent hover:border-slate-100 shadow-none hover:shadow-sm"
-                                            >
-                                                <Edit2 className="w-4 h-4" />
-                                            </button>
+                                            {profile?.role !== 'viewer' && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        setSelectedContract(contract)
+                                                    }}
+                                                    className="inline-flex items-center justify-center w-10 h-10 hover:bg-white rounded-xl text-slate-400 hover:text-indigo-600 transition-all border border-transparent hover:border-slate-100 shadow-none hover:shadow-sm"
+                                                >
+                                                    <Edit2 className="w-4 h-4" />
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))

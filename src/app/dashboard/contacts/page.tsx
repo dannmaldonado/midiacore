@@ -87,13 +87,15 @@ export default function ContactsPage() {
                     <h2 className="text-4xl font-black tracking-tight text-slate-900 font-display">Contatos</h2>
                     <p className="text-slate-500 mt-2 font-medium">CRM centralizado de gerentes e equipes de marketing.</p>
                 </div>
-                <Link
-                    href="/dashboard/contacts/new"
-                    className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-2xl text-sm font-black hover:scale-105 transition-all shadow-lg shadow-indigo-600/20 active:scale-95"
-                >
-                    <Plus className="w-4 h-4" />
-                    NOVO CONTATO
-                </Link>
+                {profile?.role !== 'viewer' && (
+                    <Link
+                        href="/dashboard/contacts/new"
+                        className="flex items-center gap-2 bg-indigo-600 text-white px-6 py-3 rounded-2xl text-sm font-black hover:scale-105 transition-all shadow-lg shadow-indigo-600/20 active:scale-95"
+                    >
+                        <Plus className="w-4 h-4" />
+                        NOVO CONTATO
+                    </Link>
+                )}
             </div>
 
             <div className="executive-card">
@@ -160,12 +162,14 @@ export default function ContactsPage() {
                             {filteredContacts.map(contact => (
                                 <div key={contact.id} className="bg-white border border-slate-100 rounded-2xl p-5 hover:shadow-md hover:border-indigo-100 transition-all group relative">
                                     {/* Edit button */}
-                                    <Link
-                                        href={`/dashboard/contacts/${contact.id}`}
-                                        className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-xl text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100"
-                                    >
-                                        <Edit2 className="w-3.5 h-3.5" />
-                                    </Link>
+                                    {profile?.role !== 'viewer' && (
+                                        <Link
+                                            href={`/dashboard/contacts/${contact.id}`}
+                                            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-xl text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 transition-all opacity-0 group-hover:opacity-100"
+                                        >
+                                            <Edit2 className="w-3.5 h-3.5" />
+                                        </Link>
+                                    )}
 
                                     <div className="flex items-start gap-4">
                                         {/* Avatar */}
