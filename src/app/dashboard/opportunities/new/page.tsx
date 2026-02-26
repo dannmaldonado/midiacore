@@ -28,8 +28,7 @@ export default function NewOpportunityPage() {
     const [error, setError] = useState<string | null>(null)
 
     const [formData, setFormData] = useState({
-        client_name: '',
-        title: '',
+        shopping_name: '',
         frequency: '',
         social_media_plan: '',
         new_media_target: '',
@@ -51,9 +50,7 @@ export default function NewOpportunityPage() {
                 .from('opportunities')
                 .insert({
                     company_id: profile.company_id,
-                    client_name: formData.client_name,
-                    title: formData.title,
-                    value: 0,
+                    shopping_name: formData.shopping_name,
                     frequency: formData.frequency || null,
                     social_media_plan: formData.social_media_plan.trim() || null,
                     new_media_target: formData.new_media_target.trim() || null,
@@ -100,29 +97,16 @@ export default function NewOpportunityPage() {
                             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Identificação</h3>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-wide">Shopping / Cliente *</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={formData.client_name}
-                                    onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
-                                    placeholder="Ex: Shopping Tietê Plaza"
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all font-bold text-slate-700"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-wide">Título / Descrição *</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={formData.title}
-                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    placeholder="Ex: Negociação empena Q1 2026"
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all font-bold text-slate-700"
-                                />
-                            </div>
+                        <div>
+                            <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-wide">Shopping / Cliente *</label>
+                            <input
+                                type="text"
+                                required
+                                value={formData.shopping_name}
+                                onChange={(e) => setFormData({ ...formData, shopping_name: e.target.value })}
+                                placeholder="Ex: Shopping Tietê Plaza"
+                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all font-bold text-slate-700"
+                            />
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

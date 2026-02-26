@@ -47,9 +47,9 @@ export default function OpportunitiesPage() {
     const filteredOpportunities = useMemo(() => {
         return opportunities.filter(opp => {
             const matchesSearch =
-                opp.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                opp.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (opp.responsible_person && opp.responsible_person.toLowerCase().includes(searchTerm.toLowerCase()))
+                opp.shopping_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (opp.responsible_person && opp.responsible_person.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (opp.notes && opp.notes.toLowerCase().includes(searchTerm.toLowerCase()))
 
             const matchesStage = stageFilter === 'all' || opp.stage === stageFilter
 
@@ -150,8 +150,7 @@ export default function OpportunitiesPage() {
                                     <tr key={opp.id} className="hover:bg-slate-50/80 transition-all group">
                                         <td className="px-8 py-6">
                                             <div className="flex flex-col gap-1.5">
-                                                <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase text-sm">{opp.client_name}</span>
-                                                <span className="text-[11px] text-slate-400 font-bold tracking-tight">{opp.title}</span>
+                                                <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase text-sm">{opp.shopping_name}</span>
                                                 <div className="flex items-center gap-2 flex-wrap">
                                                     {(opp.new_media_target?.toLowerCase().includes('mídia kit') ||
                                                         opp.new_media_target?.toLowerCase().includes('aguardando')) && (

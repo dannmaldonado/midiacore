@@ -38,14 +38,11 @@ export interface Contract {
 export interface Opportunity {
     id: string
     company_id: string
-    title: string
-    client_name: string
-    value: number
+    shopping_name: string
     stage: string
-    responsible_person: string
+    responsible_person: string | null
     notes: string | null
     created_at: string
-    // Story 1.1 — novos campos
     frequency?: string | null
     social_media_plan?: string | null
     new_media_target?: string | null
