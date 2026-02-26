@@ -38,7 +38,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         let isMounted = true
-        let timeoutId: NodeJS.Timeout
+        // eslint-disable-next-line prefer-const
+        let timeoutId: NodeJS.Timeout | undefined
 
         const fetchProfile = async (userId: string) => {
             try {
