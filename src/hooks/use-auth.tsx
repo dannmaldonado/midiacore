@@ -1,6 +1,7 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { type User } from '@supabase/supabase-js'
 
@@ -24,7 +25,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null)
     const [profile, setProfile] = useState<Profile | null>(null)
     const [loading, setLoading] = useState(true)
-    const supabase = createClient()
+    const router = useRouter()
+    const supabase = useMemo(() => createClient(), [])
 
     useEffect(() => {
         const fetchProfile = async (userId: string) => {
@@ -36,6 +38,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             if (!error && data) {
                 setProfile(data)
+            } else if (error) {
+                console.error('[Auth] Falha ao carregar perfil:', error.message)
             }
         }
 
@@ -61,6 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const signOut = async () => {
         await supabase.auth.signOut()
+        router.push('/login')
     }
 
     return (

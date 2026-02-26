@@ -45,7 +45,7 @@ export function Sidebar() {
 
             <div className="mt-auto p-6 border-t border-white/5 bg-slate-950/50 backdrop-blur-sm">
                 <button
-                    onClick={() => signOut()}
+                    onClick={signOut}
                     className="flex items-center gap-3 px-4 py-3 w-full rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-all group"
                 >
                     <LogOut className="w-5 h-5 group-hover:rotate-12 transition-transform" />
