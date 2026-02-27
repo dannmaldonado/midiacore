@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "MidiaCore | Smart Media Mall Management",
-  description: "Plataforma profissional de gestão de ativos de mídia.",
+  title: "Mídia Mall — Audi Comunicação",
+  description: "Plataforma interna de gestão de mídias, contratos e aprovações — Lojas Torra.",
 };
 
 import { AuthProvider } from "@/hooks/use-auth";

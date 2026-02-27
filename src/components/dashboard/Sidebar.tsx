@@ -25,14 +25,15 @@ export function Sidebar() {
         <aside className="w-64 bg-slate-900 border-r border-white/5 text-white flex flex-col h-screen fixed left-0 top-0 z-20 shadow-2xl">
             <div className="p-8 pb-10">
                 <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-indigo-500/20">
-                        M
+                    {/* Logo placeholder — substituir por <Image src="/logo.png" /> quando fornecido */}
+                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-black text-xs shadow-lg shadow-indigo-500/20">
+                        AC
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold tracking-tight font-display">MidiaCore</h1>
+                        <h1 className="text-xl font-bold tracking-tight font-display">Mídia Mall</h1>
                         <div className="flex items-center gap-1.5">
                             <span className="w-1 h-1 bg-emerald-400 rounded-full animate-pulse" />
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Enterprise UI</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Audi Comunicação</p>
                         </div>
                     </div>
                 </div>
