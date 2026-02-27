@@ -81,6 +81,24 @@ export function WorkflowStepCard({
 
             if (error) throw error
 
+            // Create notification via RPC (Story 3.2)
+            if (workflow.deadline) {
+                const { error: notifError } = await supabase.rpc(
+                    'create_approval_notification',
+                    {
+                        p_contract_id: contractId,
+                        p_user_id: assignedId,
+                        p_step: workflow.current_step,
+                        p_deadline: workflow.deadline,
+                    }
+                )
+
+                if (notifError) {
+                    console.warn('Erro ao criar notificação:', notifError)
+                    // Don't fail the assignment if notification fails
+                }
+            }
+
             setShowAssignmentSelect(false)
             onUpdate()
         } catch (err) {

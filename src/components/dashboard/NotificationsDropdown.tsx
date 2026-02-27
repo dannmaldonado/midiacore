@@ -2,14 +2,19 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Bell } from 'lucide-react'
+import { useAuth } from '@/hooks/use-auth'
+import { Bell, AlertCircle } from 'lucide-react'
+import { daysUntilDeadline, getStepLabel, isDeadlineUrgent } from '@/hooks/use-notifications'
+import Link from 'next/link'
 
 interface NotificationItem {
     id: string
     title: string
     description: string
-    type: 'contract' | 'opportunity'
+    type: 'contract' | 'opportunity' | 'approval'
     date: string
+    contractId?: string
+    isUrgent?: boolean
 }
 
 interface NotificationsDropdownProps {
@@ -19,11 +24,12 @@ interface NotificationsDropdownProps {
 
 export function NotificationsDropdown({ isOpen, onToggle }: NotificationsDropdownProps) {
     const supabase = createClient()
+    const { profile } = useAuth()
     const [notifications, setNotifications] = useState<NotificationItem[]>([])
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
-        if (!isOpen) return
+        if (!isOpen || !profile?.id) return
 
         const fetchNotifications = async () => {
             setLoading(true)
@@ -52,6 +58,23 @@ export function NotificationsDropdown({ isOpen, onToggle }: NotificationsDropdow
                     .eq('stage', 'Aguardando resposta')
                     .lte('created_at', in7Days.toISOString())
 
+                // 4. Approval notifications (Story 3.2)
+                const { data: approvalNotifications } = await supabase
+                    .from('notifications')
+                    .select(
+                      `id,
+                       contract_id,
+                       step,
+                       payload,
+                       read_at,
+                       created_at,
+                       contracts:contract_id (shopping_name)`
+                    )
+                    .eq('user_id', profile.id)
+                    .eq('type', 'approval_assigned')
+                    .is('read_at', null)
+                    .order('created_at', { ascending: false })
+
                 const items: NotificationItem[] = []
 
                 interface ContractRecord {
@@ -65,6 +88,32 @@ export function NotificationsDropdown({ isOpen, onToggle }: NotificationsDropdow
                     shopping_name: string
                     created_at: string
                 }
+                interface ApprovalNotification {
+                    id: string
+                    contract_id: string
+                    step: string
+                    payload: { deadline?: string }
+                    created_at: string
+                    contracts: { shopping_name: string }
+                }
+
+                // Add approval notifications (highest priority)
+                approvalNotifications?.forEach((notif: ApprovalNotification) => {
+                    const deadline = notif.payload?.deadline
+                    const daysLeft = daysUntilDeadline(deadline)
+                    const isUrgent = isDeadlineUrgent(deadline)
+                    const stepLabel = getStepLabel(notif.step)
+
+                    items.push({
+                        id: `approval-${notif.id}`,
+                        title: `Aprovação pendente: ${notif.contracts?.shopping_name || 'Contrato'}`,
+                        description: `${stepLabel} — ${daysLeft !== null ? (daysLeft < 0 ? `Atrasado por ${Math.abs(daysLeft)} dias` : `Vence em ${daysLeft} dias`) : 'Sem prazo'}`,
+                        type: 'approval',
+                        date: notif.created_at,
+                        contractId: notif.contract_id,
+                        isUrgent,
+                    })
+                })
 
                 // Add expiring contracts
                 expiringContracts?.forEach((contract: ContractRecord) => {
@@ -108,7 +157,7 @@ export function NotificationsDropdown({ isOpen, onToggle }: NotificationsDropdow
         }
 
         fetchNotifications()
-    }, [isOpen, supabase])
+    }, [isOpen, profile?.id, supabase])
 
     const notificationCount = notifications.length
 
@@ -152,22 +201,66 @@ export function NotificationsDropdown({ isOpen, onToggle }: NotificationsDropdow
 
                         {!loading && notifications.length > 0 && (
                             <div className="divide-y divide-slate-200">
-                                {notifications.map((notif) => (
-                                    <div
-                                        key={notif.id}
-                                        className="p-4 hover:bg-slate-50 transition-colors cursor-pointer"
-                                    >
-                                        <p className="font-semibold text-slate-900 text-sm">
-                                            {notif.title}
-                                        </p>
-                                        <p className="text-xs text-slate-600 mt-1">
-                                            {notif.description}
-                                        </p>
-                                        <p className="text-[10px] text-slate-400 mt-2">
-                                            {new Date(notif.date).toLocaleDateString('pt-BR')}
-                                        </p>
-                                    </div>
-                                ))}
+                                {notifications.map((notif) => {
+                                    const content = (
+                                        <div
+                                            className={`p-4 transition-colors ${
+                                                notif.type === 'approval'
+                                                    ? `${notif.isUrgent ? 'bg-red-50 hover:bg-red-100' : 'bg-indigo-50 hover:bg-indigo-100'} cursor-pointer`
+                                                    : 'hover:bg-slate-50 cursor-pointer'
+                                            }`}
+                                        >
+                                            <div className="flex items-start gap-2">
+                                                {notif.type === 'approval' && notif.isUrgent && (
+                                                    <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                                                )}
+                                                <div className="flex-1 min-w-0">
+                                                    <p className={`font-semibold text-sm truncate ${
+                                                        notif.type === 'approval'
+                                                            ? notif.isUrgent
+                                                                ? 'text-red-900'
+                                                                : 'text-indigo-900'
+                                                            : 'text-slate-900'
+                                                    }`}>
+                                                        {notif.title}
+                                                    </p>
+                                                    <p className={`text-xs mt-1 truncate ${
+                                                        notif.type === 'approval'
+                                                            ? notif.isUrgent
+                                                                ? 'text-red-700 font-semibold'
+                                                                : 'text-indigo-700'
+                                                            : 'text-slate-600'
+                                                    }`}>
+                                                        {notif.description}
+                                                    </p>
+                                                    <p className="text-[10px] text-slate-400 mt-2">
+                                                        {new Date(notif.date).toLocaleDateString('pt-BR')}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )
+
+                                    // Render as link for approval notifications
+                                    if (notif.type === 'approval' && notif.contractId) {
+                                        return (
+                                            <Link
+                                                key={notif.id}
+                                                href={`/dashboard/contracts/${notif.contractId}/approvals`}
+                                                className="block"
+                                            >
+                                                {content}
+                                            </Link>
+                                        )
+                                    }
+
+                                    // Render as div for other notifications
+                                    return (
+                                        <div key={notif.id}>
+                                            {content}
+                                        </div>
+                                    )
+                                })}
                             </div>
                         )}
                     </div>
