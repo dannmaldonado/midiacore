@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, Users, TrendingUp, LogOut, Settings } from 'lucide-react'
+import { LayoutDashboard, FileText, Users, TrendingUp, LogOut, Settings, Clock } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
@@ -7,6 +7,7 @@ import { SettingsModal } from './SettingsModal'
 const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
     { icon: FileText, label: 'Contratos', href: '/dashboard/contracts' },
+    { icon: Clock, label: 'Prazos', href: '/dashboard/prazos' },
     { icon: TrendingUp, label: 'Oportunidades', href: '/dashboard/opportunities' },
     { icon: Users, label: 'Contatos', href: '/dashboard/contacts' },
 ]
