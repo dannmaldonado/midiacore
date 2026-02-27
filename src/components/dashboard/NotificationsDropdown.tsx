@@ -94,7 +94,7 @@ export function NotificationsDropdown({ isOpen, onToggle }: NotificationsDropdow
                     step: string
                     payload: { deadline?: string }
                     created_at: string
-                    contracts: { shopping_name: string }
+                    contracts: { shopping_name: string }[] | { shopping_name: string } | null
                 }
 
                 // Add approval notifications (highest priority)
@@ -103,10 +103,13 @@ export function NotificationsDropdown({ isOpen, onToggle }: NotificationsDropdow
                     const daysLeft = daysUntilDeadline(deadline)
                     const isUrgent = isDeadlineUrgent(deadline)
                     const stepLabel = getStepLabel(notif.step)
+                    const shoppingName = Array.isArray(notif.contracts)
+                        ? notif.contracts[0]?.shopping_name
+                        : notif.contracts?.shopping_name
 
                     items.push({
                         id: `approval-${notif.id}`,
-                        title: `Aprovação pendente: ${notif.contracts?.shopping_name || 'Contrato'}`,
+                        title: `Aprovação pendente: ${shoppingName || 'Contrato'}`,
                         description: `${stepLabel} — ${daysLeft !== null ? (daysLeft < 0 ? `Atrasado por ${Math.abs(daysLeft)} dias` : `Vence em ${daysLeft} dias`) : 'Sem prazo'}`,
                         type: 'approval',
                         date: notif.created_at,
