@@ -26,7 +26,7 @@ const STEP_LABELS: Record<string, string> = {
 
 export default function PrazosPage() {
     const { profile, isAdmin } = useAuth()
-    const supabase = createClient()
+    const supabase = useMemo(() => createClient(), [])
 
     const [contracts, setContracts] = useState<Contract[]>([])
     const [workflows, setWorkflows] = useState<ApprovalWorkflow[]>([])
