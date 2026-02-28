@@ -8,7 +8,8 @@ import { useAuth } from '@/hooks/use-auth'
 import { useRouter, useParams } from 'next/navigation'
 import { ArrowLeft, Save, Loader2, FileText, BadgeDollarSign, Calendar, Users, Tag, X, Link2, ExternalLink, Trash2, GitBranch } from 'lucide-react'
 import Link from 'next/link'
-import { Contract } from '@/types'
+import { Contract, ApprovalWorkflow } from '@/types'
+import { EtapaVigenteCard } from '@/components/dashboard/EtapaVigenteCard'
 
 export default function EditContractPage() {
     const { profile } = useAuth()
@@ -21,6 +22,8 @@ export default function EditContractPage() {
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [newMediaProp, setNewMediaProp] = useState('')
+    const [contract, setContract] = useState<Contract | null>(null)
+    const [currentWorkflow, setCurrentWorkflow] = useState<ApprovalWorkflow | null>(null)
 
     const [formData, setFormData] = useState({
         shopping_name: '',
@@ -54,6 +57,7 @@ export default function EditContractPage() {
                 setError('Contrato não encontrado ou sem permissão de acesso.')
                 setLoading(false)
             } else if (data) {
+                setContract(data)
                 setFormData({
                     shopping_name: data.shopping_name ?? '',
                     media_type: data.media_type ?? '',
@@ -70,6 +74,18 @@ export default function EditContractPage() {
                     comments: data.comments ?? '',
                     notes: data.notes ?? ''
                 })
+
+                // Fetch most recent pending workflow (fallback for current_step)
+                const { data: wfData } = await supabase
+                    .from('approval_workflows')
+                    .select('*')
+                    .eq('contract_id', contractId)
+                    .eq('step_status', 'pending')
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .single()
+
+                setCurrentWorkflow(wfData ?? null)
                 setLoading(false)
             }
         }
@@ -191,6 +207,18 @@ export default function EditContractPage() {
                     </button>
                 </div>
             </div>
+
+            {/* AC-1: Card de Etapa Vigente */}
+            {contract && (
+                <EtapaVigenteCard
+                    key={contract.id + (contract.current_step ?? currentWorkflow?.current_step ?? '')}
+                    contract={contract}
+                    currentStep={contract.current_step ?? currentWorkflow?.current_step ?? null}
+                    stepStatus={currentWorkflow?.step_status ?? 'pending'}
+                    isAdmin={profile?.role === 'admin'}
+                    onSaved={() => router.refresh()}
+                />
+            )}
 
             <div className="executive-card p-10 bg-white/80 backdrop-blur-md">
                 <form onSubmit={handleSubmit} className="space-y-10">
