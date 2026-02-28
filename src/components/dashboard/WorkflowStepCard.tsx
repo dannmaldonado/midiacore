@@ -237,6 +237,25 @@ export function WorkflowStepCard({
                 )}
             </div>
 
+            {/* AC-1: Quem executou (apenas para etapas concluídas) */}
+            {isCompleted && (
+                <div className="border-t border-slate-100 pt-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-wide block mb-2">Executado por</label>
+                    {/* AC-5: exibir nome ou "—" */}
+                    <p className="text-sm font-bold text-slate-700">
+                        {assignedProfile?.full_name || '—'}
+                    </p>
+                    {workflow.completed_at && (
+                        <p className="text-[10px] text-slate-400 mt-0.5">
+                            {new Date(workflow.completed_at).toLocaleString('pt-BR', {
+                                day: '2-digit', month: '2-digit', year: 'numeric',
+                                hour: '2-digit', minute: '2-digit',
+                            })}
+                        </p>
+                    )}
+                </div>
+            )}
+
             {/* Valor do Contrato (AC-1) */}
             {contractValue !== undefined && (
                 <div className="border-t border-slate-100 pt-3">

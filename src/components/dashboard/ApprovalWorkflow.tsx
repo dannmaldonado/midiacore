@@ -3,13 +3,15 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
-import { Loader2, Play } from 'lucide-react'
+import { Loader2, Play, History } from 'lucide-react'
 import { ApprovalWorkflow as ApprovalWorkflowType, Profile } from '@/types'
 import { WorkflowStepCard } from './WorkflowStepCard'
+import { ApprovalHistoryDrawer } from './ApprovalHistoryDrawer'
 
 interface ApprovalWorkflowProps {
     contractId: string
     contractValue?: number
+    contractName?: string
 }
 
 const WORKFLOW_STEPS = [
@@ -19,7 +21,7 @@ const WORKFLOW_STEPS = [
     { step: 'legal', label: 'Legal', sla_days: 7 },
 ]
 
-export function ApprovalWorkflow({ contractId, contractValue }: ApprovalWorkflowProps) {
+export function ApprovalWorkflow({ contractId, contractValue, contractName }: ApprovalWorkflowProps) {
     const { profile } = useAuth()
     const supabase = createClient()
 
@@ -28,6 +30,7 @@ export function ApprovalWorkflow({ contractId, contractValue }: ApprovalWorkflow
     const [error, setError] = useState<string | null>(null)
     const [workflows, setWorkflows] = useState<ApprovalWorkflowType[]>([])
     const [profiles, setProfiles] = useState<Record<string, Profile>>({})
+    const [showHistory, setShowHistory] = useState(false)
 
     useEffect(() => {
         const fetchData = async () => {
@@ -188,7 +191,16 @@ export function ApprovalWorkflow({ contractId, contractValue }: ApprovalWorkflow
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-wide">Progresso Geral</h3>
-                                <span className="text-sm font-black text-indigo-600">{completedCount} de {workflows.length} aprovado</span>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-sm font-black text-indigo-600">{completedCount} de {workflows.length} aprovado</span>
+                                    <button
+                                        onClick={() => setShowHistory(true)}
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wide text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors border border-slate-200"
+                                    >
+                                        <History className="w-3 h-3" />
+                                        Histórico
+                                    </button>
+                                </div>
                             </div>
                             <div className="w-full bg-slate-200 rounded-full h-2">
                                 <div
@@ -215,6 +227,14 @@ export function ApprovalWorkflow({ contractId, contractValue }: ApprovalWorkflow
                     </div>
                 </div>
             )}
+
+            <ApprovalHistoryDrawer
+                isOpen={showHistory}
+                onClose={() => setShowHistory(false)}
+                contractName={contractName || contractId}
+                workflows={workflows}
+                profiles={profiles}
+            />
         </div>
     )
 }
