@@ -6,11 +6,16 @@ import { useAuth } from '@/hooks/use-auth'
 import { Loader2, Check, X, SkipForward } from 'lucide-react'
 import { ApprovalWorkflow, Profile } from '@/types'
 
+// AC-3: Formatar valor em BRL
+const formatBRL = (value: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+
 interface WorkflowStepCardProps {
     workflow: ApprovalWorkflow
     stepConfig: { step: string; label: string; sla_days: number }
     assignedProfile?: Profile
     contractId: string
+    contractValue?: number
     onUpdate: () => void
 }
 
@@ -19,6 +24,7 @@ export function WorkflowStepCard({
     stepConfig,
     assignedProfile,
     contractId,
+    contractValue,
     onUpdate,
 }: WorkflowStepCardProps) {
     const { profile } = useAuth()
@@ -230,6 +236,14 @@ export function WorkflowStepCard({
                     <p className="text-sm font-medium text-slate-400 italic">Sem prazo</p>
                 )}
             </div>
+
+            {/* Valor do Contrato (AC-1) */}
+            {contractValue !== undefined && (
+                <div className="border-t border-slate-100 pt-3">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-wide block mb-2">Valor do Contrato</label>
+                    <p className="text-sm font-black text-indigo-700">{formatBRL(contractValue)}</p>
+                </div>
+            )}
 
             {/* Notas (se rejeitado) */}
             {workflow.notes && workflow.step_status === 'rejected' && (

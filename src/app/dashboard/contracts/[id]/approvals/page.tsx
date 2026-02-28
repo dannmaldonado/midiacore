@@ -87,7 +87,12 @@ export default function ApprovalWorkflowPage() {
                 </div>
             </div>
 
-            {contract && <ApprovalWorkflow contractId={contractId} />}
+            {contract && (
+                <ApprovalWorkflow
+                    contractId={contractId}
+                    contractValue={contract.contract_value}
+                />
+            )}
         </div>
     )
 }

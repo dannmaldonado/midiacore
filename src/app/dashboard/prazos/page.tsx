@@ -5,11 +5,15 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
-import { Clock, ExternalLink, RefreshCw } from 'lucide-react'
+import { Clock, ExternalLink, RefreshCw, BadgeDollarSign } from 'lucide-react'
 import Link from 'next/link'
 import { Contract, ApprovalWorkflow } from '@/types'
 import { PrazosEtapas, PRAZOS_ETAPAS } from '@/components/dashboard/PrazosEtapas'
 import { RenovacaoModal } from '@/components/dashboard/RenovacaoModal'
+
+// AC-3: Formatar valor em BRL
+const formatBRL = (value: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 
 // Labels for internal workflow steps (Story 3.1) + Prazos steps
 const STEP_LABELS: Record<string, string> = {
@@ -85,6 +89,21 @@ export default function PrazosPage() {
         return counts
     }, [contracts, workflowMap])
 
+    // AC-4: Valor total em negociação e em aprovação final
+    const { totalValue, juridicValue } = useMemo(() => {
+        let totalValue = 0
+        let juridicValue = 0
+        for (const c of contracts) {
+            const val = Number(c.contract_value) || 0
+            totalValue += val
+            const wf = workflowMap[c.id]
+            if (wf?.current_step === 'juridico_torra') {
+                juridicValue += val
+            }
+        }
+        return { totalValue, juridicValue }
+    }, [contracts, workflowMap])
+
     const { today, in30DaysStr, in60DaysStr } = useMemo(() => {
         const now = new Date()
         return {
@@ -120,6 +139,32 @@ export default function PrazosPage() {
             {/* Reference Panel — 12 stages */}
             <PrazosEtapas stageCounts={stageCounts} />
 
+            {/* KPIs de Valor (AC-4) */}
+            {contracts.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="executive-card p-5 flex items-center gap-4">
+                        <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <BadgeDollarSign className="w-5 h-5 text-indigo-600" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Valor Total em Negociação</p>
+                            <p className="text-xl font-black text-slate-900">{formatBRL(totalValue)}</p>
+                            <p className="text-[10px] font-medium text-slate-400 mt-0.5">{contracts.length} contratos ativos</p>
+                        </div>
+                    </div>
+                    <div className="executive-card p-5 flex items-center gap-4">
+                        <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <BadgeDollarSign className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Valor em Aprovação Final</p>
+                            <p className="text-xl font-black text-slate-900">{formatBRL(juridicValue)}</p>
+                            <p className="text-[10px] font-medium text-slate-400 mt-0.5">Etapa Jurídico Torra</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Contracts Table */}
             <div className="executive-card">
                 <div className="p-6 border-b border-slate-100 flex items-center justify-between">
@@ -139,6 +184,7 @@ export default function PrazosPage() {
                                 <tr className="border-b border-slate-100">
                                     <th className="text-left p-4 text-xs font-black text-slate-400 uppercase tracking-tight">Shopping</th>
                                     <th className="text-left p-4 text-xs font-black text-slate-400 uppercase tracking-tight">Vencimento</th>
+                                    <th className="text-left p-4 text-xs font-black text-slate-400 uppercase tracking-tight">Valor</th>
                                     <th className="text-left p-4 text-xs font-black text-slate-400 uppercase tracking-tight">Etapa Vigente</th>
                                     <th className="text-left p-4 text-xs font-black text-slate-400 uppercase tracking-tight">Prazo da Etapa</th>
                                     <th className="text-left p-4 text-xs font-black text-slate-400 uppercase tracking-tight">Ações</th>
@@ -175,6 +221,12 @@ export default function PrazosPage() {
                                                 }`}>
                                                     {isEndDateSoon && '⚠ '}
                                                     {new Date(contract.end_date + 'T12:00:00').toLocaleDateString('pt-BR')}
+                                                </span>
+                                            </td>
+                                            {/* Coluna Valor (AC-2) */}
+                                            <td className="p-4">
+                                                <span className="text-sm font-bold text-emerald-700">
+                                                    {formatBRL(Number(contract.contract_value) || 0)}
                                                 </span>
                                             </td>
                                             <td className="p-4">
@@ -223,6 +275,18 @@ export default function PrazosPage() {
                                     )
                                 })}
                             </tbody>
+                            {/* Rodapé: total acumulado (AC-4) */}
+                            <tfoot>
+                                <tr className="border-t-2 border-slate-200 bg-slate-50">
+                                    <td className="p-4 text-xs font-black text-slate-500 uppercase tracking-tight" colSpan={2}>
+                                        Total ({contracts.length} contratos)
+                                    </td>
+                                    <td className="p-4">
+                                        <span className="text-sm font-black text-emerald-700">{formatBRL(totalValue)}</span>
+                                    </td>
+                                    <td colSpan={3} />
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
                 )}

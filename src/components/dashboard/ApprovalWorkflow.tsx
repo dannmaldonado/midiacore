@@ -9,6 +9,7 @@ import { WorkflowStepCard } from './WorkflowStepCard'
 
 interface ApprovalWorkflowProps {
     contractId: string
+    contractValue?: number
 }
 
 const WORKFLOW_STEPS = [
@@ -18,7 +19,7 @@ const WORKFLOW_STEPS = [
     { step: 'legal', label: 'Legal', sla_days: 7 },
 ]
 
-export function ApprovalWorkflow({ contractId }: ApprovalWorkflowProps) {
+export function ApprovalWorkflow({ contractId, contractValue }: ApprovalWorkflowProps) {
     const { profile } = useAuth()
     const supabase = createClient()
 
@@ -207,6 +208,7 @@ export function ApprovalWorkflow({ contractId }: ApprovalWorkflowProps) {
                                 stepConfig={WORKFLOW_STEPS.find(s => s.step === workflow.current_step)!}
                                 assignedProfile={workflow.assigned_to ? profiles[workflow.assigned_to] : undefined}
                                 contractId={contractId}
+                                contractValue={contractValue}
                                 onUpdate={handleRefresh}
                             />
                         ))}
