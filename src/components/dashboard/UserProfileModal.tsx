@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Profile } from '@/types'
 import { X, LogOut } from 'lucide-react'
@@ -13,16 +13,26 @@ interface UserProfileModalProps {
 }
 
 export function UserProfileModal({ isOpen, onClose, profile }: UserProfileModalProps) {
-    const { signOut } = useAuth()
+    const { user, signOut } = useAuth()
+    const supabase = useMemo(() => createClient(), [])
     const [fullName, setFullName] = useState(profile?.full_name || '')
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
-    const supabase = createClient()
+
+    // Sincroniza fullName quando profile carrega (modal pode montar antes do profile chegar)
+    useEffect(() => {
+        setFullName(profile?.full_name || '')
+    }, [profile?.full_name])
 
     if (!isOpen) return null
 
     const handleSaveProfile = async () => {
+        if (!profile?.id) {
+            setError('Perfil não carregado. Tente novamente.')
+            return
+        }
+
         setSaving(true)
         setError(null)
         setSuccess(false)
@@ -31,7 +41,7 @@ export function UserProfileModal({ isOpen, onClose, profile }: UserProfileModalP
             const { error: updateError } = await supabase
                 .from('profiles')
                 .update({ full_name: fullName || null })
-                .eq('id', profile?.id)
+                .eq('id', profile.id)
 
             if (updateError) throw updateError
 
@@ -79,7 +89,7 @@ export function UserProfileModal({ isOpen, onClose, profile }: UserProfileModalP
                             Email
                         </label>
                         <div className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 text-sm">
-                            {profile?.id}
+                            {user?.email || '—'}
                         </div>
                         <p className="text-xs text-slate-500 mt-1">Email não pode ser alterado</p>
                     </div>
