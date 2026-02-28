@@ -2,13 +2,14 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
-import { Clock, ExternalLink } from 'lucide-react'
+import { Clock, ExternalLink, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import { Contract, ApprovalWorkflow } from '@/types'
 import { PrazosEtapas, PRAZOS_ETAPAS } from '@/components/dashboard/PrazosEtapas'
+import { RenovacaoModal } from '@/components/dashboard/RenovacaoModal'
 
 // Labels for internal workflow steps (Story 3.1) + Prazos steps
 const STEP_LABELS: Record<string, string> = {
@@ -20,45 +21,46 @@ const STEP_LABELS: Record<string, string> = {
 }
 
 export default function PrazosPage() {
-    const { profile } = useAuth()
+    const { profile, isAdmin } = useAuth()
     const supabase = createClient()
 
     const [contracts, setContracts] = useState<Contract[]>([])
     const [workflows, setWorkflows] = useState<ApprovalWorkflow[]>([])
     const [loading, setLoading] = useState(true)
+    const [renewModalContract, setRenewModalContract] = useState<Contract | null>(null)
+
+    const fetchData = useCallback(async () => {
+        if (!profile?.company_id) return
+        setLoading(true)
+        try {
+            const { data: contractsData } = await supabase
+                .from('contracts')
+                .select('*')
+                .eq('company_id', profile.company_id)
+                .eq('status', 'active')
+                .order('end_date', { ascending: true })
+
+            setContracts(contractsData || [])
+
+            if (contractsData && contractsData.length > 0) {
+                const contractIds = contractsData.map((c: Contract) => c.id)
+                const { data: workflowsData } = await supabase
+                    .from('approval_workflows')
+                    .select('*')
+                    .in('contract_id', contractIds)
+                    .eq('step_status', 'pending')
+                    .order('created_at', { ascending: false })
+
+                setWorkflows(workflowsData || [])
+            }
+        } finally {
+            setLoading(false)
+        }
+    }, [profile?.company_id, supabase])
 
     useEffect(() => {
-        const fetchData = async () => {
-            if (!profile?.company_id) return
-            setLoading(true)
-            try {
-                const { data: contractsData } = await supabase
-                    .from('contracts')
-                    .select('*')
-                    .eq('company_id', profile.company_id)
-                    .eq('status', 'active')
-                    .order('end_date', { ascending: true })
-
-                setContracts(contractsData || [])
-
-                if (contractsData && contractsData.length > 0) {
-                    const contractIds = contractsData.map((c: Contract) => c.id)
-                    const { data: workflowsData } = await supabase
-                        .from('approval_workflows')
-                        .select('*')
-                        .in('contract_id', contractIds)
-                        .eq('step_status', 'pending')
-                        .order('created_at', { ascending: false })
-
-                    setWorkflows(workflowsData || [])
-                }
-            } finally {
-                setLoading(false)
-            }
-        }
-
         fetchData()
-    }, [profile?.company_id, supabase])
+    }, [fetchData])
 
     // Map contractId → most recent pending workflow step
     const workflowMap = useMemo(() => {
@@ -83,11 +85,12 @@ export default function PrazosPage() {
         return counts
     }, [contracts, workflowMap])
 
-    const { today, in30DaysStr } = useMemo(() => {
+    const { today, in30DaysStr, in60DaysStr } = useMemo(() => {
         const now = new Date()
         return {
             today: now.toISOString().split('T')[0],
             in30DaysStr: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            in60DaysStr: new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         }
     }, [])
 
@@ -149,16 +152,27 @@ export default function PrazosPage() {
                                         : null
                                     const isDeadlineOverdue = !!wf?.deadline && wf.deadline < today
                                     const isEndDateSoon = contract.end_date >= today && contract.end_date <= in30DaysStr
+                                    // AC-3: destaque amarelo para contratos com end_date ≤ 60 dias
+                                    const isRenewalCandidate = contract.end_date >= today && contract.end_date <= in60DaysStr
 
                                     return (
-                                        <tr key={contract.id} className="hover:bg-slate-50 transition-colors">
+                                        <tr
+                                            key={contract.id}
+                                            className={`hover:bg-slate-50 transition-colors ${isRenewalCandidate && !isEndDateSoon ? 'bg-amber-50/40' : ''}`}
+                                        >
                                             <td className="p-4">
                                                 <span className="font-semibold text-slate-900 text-sm">
                                                     {contract.shopping_name}
                                                 </span>
                                             </td>
                                             <td className="p-4">
-                                                <span className={`text-sm font-medium ${isEndDateSoon ? 'text-red-600 font-bold' : 'text-slate-600'}`}>
+                                                <span className={`text-sm font-medium ${
+                                                    isEndDateSoon
+                                                        ? 'text-red-600 font-bold'
+                                                        : isRenewalCandidate
+                                                        ? 'text-amber-600 font-bold'
+                                                        : 'text-slate-600'
+                                                }`}>
                                                     {isEndDateSoon && '⚠ '}
                                                     {new Date(contract.end_date + 'T12:00:00').toLocaleDateString('pt-BR')}
                                                 </span>
@@ -185,13 +199,25 @@ export default function PrazosPage() {
                                                 )}
                                             </td>
                                             <td className="p-4">
-                                                <Link
-                                                    href={`/dashboard/contracts/${contract.id}/approvals`}
-                                                    className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800 text-xs font-bold transition-colors"
-                                                >
-                                                    Ver Workflow
-                                                    <ExternalLink className="w-3.5 h-3.5" />
-                                                </Link>
+                                                <div className="flex items-center gap-3">
+                                                    <Link
+                                                        href={`/dashboard/contracts/${contract.id}/approvals`}
+                                                        className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800 text-xs font-bold transition-colors"
+                                                    >
+                                                        Ver Workflow
+                                                        <ExternalLink className="w-3.5 h-3.5" />
+                                                    </Link>
+                                                    {/* AC-3: botão Renovar para contratos com ≤ 60 dias (admin only) */}
+                                                    {isAdmin && isRenewalCandidate && (
+                                                        <button
+                                                            onClick={() => setRenewModalContract(contract)}
+                                                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-black uppercase hover:bg-amber-100 transition-colors"
+                                                        >
+                                                            <RefreshCw className="w-3 h-3" />
+                                                            Renovar
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     )
@@ -201,6 +227,18 @@ export default function PrazosPage() {
                     </div>
                 )}
             </div>
+
+            {/* Modal de renovação */}
+            {renewModalContract && (
+                <RenovacaoModal
+                    contract={renewModalContract}
+                    onClose={() => setRenewModalContract(null)}
+                    onSuccess={() => {
+                        setRenewModalContract(null)
+                        fetchData()
+                    }}
+                />
+            )}
         </div>
     )
 }

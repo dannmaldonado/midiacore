@@ -35,6 +35,8 @@ export interface Contract {
     layouts_url?: string | null
     pending_quotes?: string | null
     comments?: string | null
+    // Story 4.3 — etapa de renovação vigente
+    current_step?: string | null
 }
 
 export interface Opportunity {

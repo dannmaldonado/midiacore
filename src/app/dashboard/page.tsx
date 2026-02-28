@@ -2,7 +2,8 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-auth'
 import { useDashboardMetrics, TrendingInfo, SparklinePoint } from '@/hooks/use-dashboard-metrics'
 import {
@@ -16,10 +17,12 @@ import {
     ExternalLink,
     Clock,
     Package,
+    RefreshCw,
 } from 'lucide-react'
 import { StatusDistributionChart } from '@/components/dashboard/StatusDistributionChart'
 import { OccupancyChart } from '@/components/dashboard/OccupancyChart'
 import { Sparkline } from '@/components/dashboard/Sparkline'
+import { RenovacaoModal } from '@/components/dashboard/RenovacaoModal'
 import Link from 'next/link'
 import { Contract } from '@/types'
 
@@ -103,8 +106,10 @@ const STATUS_LABELS: Record<string, string> = {
 // ─── Dashboard Page ────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-    const { profile } = useAuth()
+    const { profile, isAdmin } = useAuth()
+    const router = useRouter()
     const metrics = useDashboardMetrics()
+    const [renewModalContract, setRenewModalContract] = useState<Contract | null>(null)
 
     // Data for existing charts
     const statusData = useMemo(() => {
@@ -134,6 +139,16 @@ export default function DashboardPage() {
             }).length
             return { month: label, value: activeInMonth }
         })
+    }, [metrics.contracts])
+
+    // Contratos para renovar: vencendo nos próximos 60 dias (AC-1)
+    const renewalCandidates = useMemo(() => {
+        const now = new Date()
+        const today = now.toISOString().split('T')[0]
+        const in60Days = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        return metrics.contracts.filter(
+            c => c.status === 'active' && c.end_date >= today && c.end_date <= in60Days
+        )
     }, [metrics.contracts])
 
     return (
@@ -367,6 +382,89 @@ export default function DashboardPage() {
                     )}
                 </div>
             </div>
+
+            {/* Contratos para Renovar (60 dias) — AC-1 */}
+            <div className="executive-card p-6 bg-white/80 backdrop-blur-md">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                        <RefreshCw className="w-4 h-4 text-amber-500" />
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            Contratos para Renovar
+                        </h3>
+                        <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-black">
+                            60 dias
+                        </span>
+                    </div>
+                    <Link href="/dashboard/prazos" className="text-[10px] font-black text-indigo-600 hover:text-indigo-800 uppercase tracking-wide transition-colors">
+                        Ver Prazos
+                    </Link>
+                </div>
+
+                {metrics.loading ? (
+                    <div className="space-y-2">
+                        {[...Array(3)].map((_, i) => <div key={i} className="h-10 bg-slate-100 rounded-lg animate-pulse" />)}
+                    </div>
+                ) : renewalCandidates.length === 0 ? (
+                    <p className="text-sm font-medium text-slate-400 text-center py-6">
+                        Nenhum contrato vencendo em 60 dias
+                    </p>
+                ) : (
+                    <table className="w-full">
+                        <thead>
+                            <tr className="border-b border-slate-100">
+                                <th className="text-left text-[10px] font-black text-slate-400 uppercase tracking-wide pb-2 pr-2">Shopping</th>
+                                <th className="text-left text-[10px] font-black text-slate-400 uppercase tracking-wide pb-2 pr-2">Vencimento</th>
+                                <th className="text-right text-[10px] font-black text-slate-400 uppercase tracking-wide pb-2">Dias</th>
+                                {isAdmin && <th className="pb-2" />}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {renewalCandidates.map((c: Contract) => {
+                                const days = daysUntil(c.end_date)
+                                return (
+                                    <tr key={c.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                                        <td className="py-2.5 pr-2">
+                                            <span className="text-xs font-bold text-slate-700 truncate max-w-[120px] block">{c.shopping_name}</span>
+                                        </td>
+                                        <td className="py-2.5 pr-2">
+                                            <span className={`text-xs font-bold ${days <= 30 ? 'text-red-600' : 'text-amber-600'}`}>
+                                                {new Date(c.end_date + 'T12:00:00').toLocaleDateString('pt-BR')}
+                                            </span>
+                                        </td>
+                                        <td className="py-2.5 text-right pr-2">
+                                            <span className={`text-xs font-black ${days <= 30 ? 'text-red-600' : 'text-amber-600'}`}>
+                                                {days}d
+                                            </span>
+                                        </td>
+                                        {isAdmin && (
+                                            <td className="py-2.5 text-right">
+                                                <button
+                                                    onClick={() => setRenewModalContract(c)}
+                                                    className="px-3 py-1 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-black uppercase hover:bg-amber-100 transition-colors"
+                                                >
+                                                    Renovar
+                                                </button>
+                                            </td>
+                                        )}
+                                    </tr>
+                                )
+                            })}
+                        </tbody>
+                    </table>
+                )}
+            </div>
+
+            {/* Modal de renovação */}
+            {renewModalContract && (
+                <RenovacaoModal
+                    contract={renewModalContract}
+                    onClose={() => setRenewModalContract(null)}
+                    onSuccess={() => {
+                        setRenewModalContract(null)
+                        router.refresh()
+                    }}
+                />
+            )}
         </div>
     )
 }
