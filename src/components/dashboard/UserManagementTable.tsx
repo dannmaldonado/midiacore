@@ -1,9 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { Profile, Role } from '@/types'
-import { Loader2, Trash2, Edit2, Plus } from 'lucide-react'
+import { Loader2, Trash2, Edit2, Plus, KeyRound } from 'lucide-react'
 
 interface NewUserForm {
     email: string
@@ -23,19 +22,22 @@ export function UserManagementTable() {
     })
     const [creatingUser, setCreatingUser] = useState(false)
     const [editingRole, setEditingRole] = useState<{ userId: string; role: Role } | null>(null)
-    const supabase = createClient()
-
+    const [resetPasswordModal, setResetPasswordModal] = useState<{ userId: string; userName: string } | null>(null)
+    const [resetForm, setResetForm] = useState({ newPassword: '', confirmPassword: '' })
+    const [resetError, setResetError] = useState<string | null>(null)
+    const [resetSuccess, setResetSuccess] = useState(false)
+    const [resettingPassword, setResettingPassword] = useState(false)
     useEffect(() => {
         const fetchUsers = async () => {
             try {
                 setLoading(true)
-                const { data, error: fetchError } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .order('created_at', { ascending: false })
-
-                if (fetchError) throw fetchError
-                setUsers(data || [])
+                const response = await fetch('/api/users')
+                if (!response.ok) {
+                    const data = await response.json()
+                    throw new Error(data.error || 'Erro ao carregar usuários')
+                }
+                const data = await response.json()
+                setUsers(data.users || [])
             } catch (err) {
                 const message = err instanceof Error ? err.message : 'Erro ao carregar usuários'
                 setError(message)
@@ -45,7 +47,7 @@ export function UserManagementTable() {
         }
 
         fetchUsers()
-    }, [supabase])
+    }, [])
 
     const handleCreateUser = async () => {
         if (!newUserForm.email || !newUserForm.full_name) {
@@ -73,13 +75,10 @@ export function UserManagementTable() {
             setShowNewUserForm(false)
 
             // Refresh users list
-            const { data, error: fetchError } = await supabase
-                .from('profiles')
-                .select('*')
-                .order('created_at', { ascending: false })
-
-            if (!fetchError && data) {
-                setUsers(data)
+            const refreshResponse = await fetch('/api/users')
+            if (refreshResponse.ok) {
+                const refreshData = await refreshResponse.json()
+                setUsers(refreshData.users || [])
             }
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Erro ao criar usuário'
@@ -134,6 +133,44 @@ export function UserManagementTable() {
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Erro ao desativar usuário'
             setError(message)
+        }
+    }
+
+    const handleResetPassword = async () => {
+        setResetError(null)
+        if (resetForm.newPassword.length < 8) {
+            setResetError('A senha deve ter no mínimo 8 caracteres.')
+            return
+        }
+        if (resetForm.newPassword !== resetForm.confirmPassword) {
+            setResetError('As senhas não coincidem.')
+            return
+        }
+
+        setResettingPassword(true)
+        try {
+            const response = await fetch('/api/users/reset-password', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: resetPasswordModal?.userId, newPassword: resetForm.newPassword }),
+            })
+
+            if (!response.ok) {
+                const data = await response.json()
+                throw new Error(data.error || 'Erro ao resetar senha')
+            }
+
+            setResetSuccess(true)
+            setResetForm({ newPassword: '', confirmPassword: '' })
+            setTimeout(() => {
+                setResetSuccess(false)
+                setResetPasswordModal(null)
+            }, 2000)
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Erro ao resetar senha'
+            setResetError(message)
+        } finally {
+            setResettingPassword(false)
         }
     }
 
@@ -239,7 +276,7 @@ export function UserManagementTable() {
                                 <td className="px-4 py-3 text-slate-900 font-medium">
                                     {user.full_name || '(sem nome)'}
                                 </td>
-                                <td className="px-4 py-3 text-slate-600">{user.id}</td>
+                                <td className="px-4 py-3 text-slate-600">{user.email || '—'}</td>
                                 <td className="px-4 py-3">
                                     {editingRole?.userId === user.id ? (
                                         <select
@@ -274,6 +311,18 @@ export function UserManagementTable() {
                                             <Edit2 className="w-4 h-4" />
                                         </button>
                                         <button
+                                            onClick={() => {
+                                                setResetPasswordModal({ userId: user.id, userName: user.full_name || user.email || user.id })
+                                                setResetForm({ newPassword: '', confirmPassword: '' })
+                                                setResetError(null)
+                                                setResetSuccess(false)
+                                            }}
+                                            className="p-2 hover:bg-amber-100 rounded-lg transition-colors text-amber-600"
+                                            title="Resetar senha"
+                                        >
+                                            <KeyRound className="w-4 h-4" />
+                                        </button>
+                                        <button
                                             onClick={() => handleDeactivateUser(user.id)}
                                             className="p-2 hover:bg-red-100 rounded-lg transition-colors text-red-600"
                                             title="Desativar usuário"
@@ -291,6 +340,58 @@ export function UserManagementTable() {
             {users.length === 0 && (
                 <div className="text-center py-8 text-slate-500">
                     Nenhum usuário encontrado
+                </div>
+            )}
+
+            {/* Modal Reset Senha */}
+            {resetPasswordModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+                        <h3 className="text-lg font-bold text-slate-900">Resetar Senha</h3>
+                        <p className="text-sm text-slate-500">
+                            Definir nova senha para <strong>{resetPasswordModal.userName}</strong>
+                        </p>
+
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-600 mb-1">Nova Senha</label>
+                            <input
+                                type="password"
+                                value={resetForm.newPassword}
+                                onChange={(e) => setResetForm(f => ({ ...f, newPassword: e.target.value }))}
+                                placeholder="Mínimo 8 caracteres"
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-600 mb-1">Confirmar Nova Senha</label>
+                            <input
+                                type="password"
+                                value={resetForm.confirmPassword}
+                                onChange={(e) => setResetForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                                placeholder="Repita a nova senha"
+                                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            />
+                        </div>
+
+                        {resetError && <p className="text-xs text-red-600">{resetError}</p>}
+                        {resetSuccess && <p className="text-xs text-emerald-600">Senha resetada com sucesso!</p>}
+
+                        <div className="flex gap-2 pt-2">
+                            <button
+                                onClick={() => setResetPasswordModal(null)}
+                                className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors text-sm"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleResetPassword}
+                                disabled={resettingPassword}
+                                className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium disabled:opacity-50"
+                            >
+                                {resettingPassword ? 'Resetando...' : 'Confirmar'}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

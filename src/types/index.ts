@@ -14,6 +14,8 @@ export interface Profile {
     avatar_url: string | null
     role: Role
     created_at: string
+    // Story 5.1 — email enriquecido via GET /api/users
+    email?: string
 }
 
 export interface Contract {
@@ -65,6 +67,8 @@ export interface Contact {
     // Story 1.1 — novos campos
     contact_type: 'store_manager' | 'shopping_mkt'
     shopping_name?: string | null
+    // Story 5.1 — observações/notas
+    notes?: string | null
 }
 
 export interface ApprovalWorkflow {

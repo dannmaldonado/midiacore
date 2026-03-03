@@ -2,6 +2,53 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 /**
+ * GET /api/users - List users with emails (admin only)
+ * Returns profiles enriched with email from Supabase Auth
+ */
+export async function GET() {
+    try {
+        const supabaseClient = await createClient()
+
+        const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
+        if (userError || !user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        const { data: profile } = await supabaseClient
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single()
+
+        if (profile?.role !== 'admin') {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+        }
+
+        const supabaseAdmin = await createClient({ admin: true })
+
+        const [profilesResult, authResult] = await Promise.all([
+            supabaseClient.from('profiles').select('*').order('created_at', { ascending: false }),
+            supabaseAdmin.auth.admin.listUsers(),
+        ])
+
+        if (profilesResult.error) {
+            return NextResponse.json({ error: profilesResult.error.message }, { status: 400 })
+        }
+
+        const authUsers = authResult.data?.users ?? []
+        const enriched = (profilesResult.data ?? []).map(p => ({
+            ...p,
+            email: authUsers.find(u => u.id === p.id)?.email,
+        }))
+
+        return NextResponse.json({ users: enriched })
+    } catch (error) {
+        console.error('GET /api/users error:', error)
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
+}
+
+/**
  * POST /api/users - Create new user (admin only)
  * Body: { email: string, full_name: string, role: 'admin' | 'editor' | 'viewer' }
  */

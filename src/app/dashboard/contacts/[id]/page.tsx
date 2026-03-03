@@ -28,7 +28,8 @@ export default function EditContactPage() {
         role: '',
         company_name: '',
         phone: '',
-        email: ''
+        email: '',
+        notes: ''
     })
 
     useEffect(() => {
@@ -54,7 +55,8 @@ export default function EditContactPage() {
                     role: contact.role ?? '',
                     company_name: contact.company_name ?? '',
                     phone: contact.phone ?? '',
-                    email: contact.email ?? ''
+                    email: contact.email ?? '',
+                    notes: contact.notes ?? ''
                 })
                 setLoading(false)
             }
@@ -80,7 +82,8 @@ export default function EditContactPage() {
                     role: formData.role.trim() || null,
                     company_name: formData.company_name.trim() || null,
                     phone: formData.phone.trim() || null,
-                    email: formData.email.trim() || null
+                    email: formData.email.trim() || null,
+                    notes: formData.notes.trim() || null
                 })
                 .eq('id', contactId)
                 .eq('company_id', profile.company_id)
@@ -254,6 +257,17 @@ export default function EditContactPage() {
                                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all font-medium text-slate-600"
                                 />
                             </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-wide">Observações</label>
+                            <textarea
+                                value={formData.notes}
+                                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                placeholder="Informações adicionais sobre o contato..."
+                                rows={3}
+                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all font-medium text-slate-600 resize-none"
+                            />
                         </div>
                     </div>
 
