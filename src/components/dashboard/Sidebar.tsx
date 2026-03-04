@@ -1,15 +1,23 @@
-import { LayoutDashboard, FileText, Users, TrendingUp, LogOut, Settings, Clock } from 'lucide-react'
+import { LayoutDashboard, FileText, Users, TrendingUp, LogOut, Settings, Clock, LucideIcon } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { SettingsModal } from './SettingsModal'
 
-const menuItems = [
+interface MenuItem {
+  icon: LucideIcon
+  label: string
+  href: string
+  admin?: boolean
+}
+
+const menuItems: MenuItem[] = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
     { icon: FileText, label: 'Contratos', href: '/dashboard/contracts' },
     { icon: Clock, label: 'Prazos', href: '/dashboard/prazos' },
     { icon: TrendingUp, label: 'Oportunidades', href: '/dashboard/opportunities' },
     { icon: Users, label: 'Contatos', href: '/dashboard/contacts' },
+    { icon: Users, label: 'Usuários', href: '/dashboard/users', admin: true },
 ]
 
 export function Sidebar() {
@@ -40,17 +48,23 @@ export function Sidebar() {
                 </div>
 
                 <nav className="space-y-1.5">
-                    {menuItems.map((item) => (
-                        <Link
-                            key={item.label}
-                            href={item.href}
-                            className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all group relative overflow-hidden"
-                        >
-                            <item.icon className="w-5 h-5 text-slate-400 group-hover:text-indigo-400 transition-colors" />
-                            <span className="text-sm font-semibold group-hover:translate-x-0.5 transition-transform">{item.label}</span>
-                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 bg-indigo-500 group-hover:h-6 transition-all rounded-r-full" />
-                        </Link>
-                    ))}
+                    {menuItems.map((item) => {
+                        // Hide admin-only items from non-admins
+                        if (item.admin && profile?.role !== 'admin') {
+                            return null
+                        }
+                        return (
+                            <Link
+                                key={item.label}
+                                href={item.href}
+                                className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all group relative overflow-hidden"
+                            >
+                                <item.icon className="w-5 h-5 text-slate-400 group-hover:text-indigo-400 transition-colors" />
+                                <span className="text-sm font-semibold group-hover:translate-x-0.5 transition-transform">{item.label}</span>
+                                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-0 bg-indigo-500 group-hover:h-6 transition-all rounded-r-full" />
+                            </Link>
+                        )
+                    })}
                 </nav>
             </div>
 
