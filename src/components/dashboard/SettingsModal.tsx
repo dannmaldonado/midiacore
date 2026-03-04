@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Profile } from '@/types'
 import { X } from 'lucide-react'
-import { UserManagementTable } from './UserManagementTable'
 
 interface SettingsModalProps {
     isOpen: boolean
@@ -13,7 +12,6 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ isOpen, onClose, profile }: SettingsModalProps) {
-    const [activeTab, setActiveTab] = useState<'profile' | 'users'>('profile')
     const [fullName, setFullName] = useState(profile?.full_name || '')
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -45,14 +43,12 @@ export function SettingsModal({ isOpen, onClose, profile }: SettingsModalProps) 
         }
     }
 
-    const isAdmin = profile?.role === 'admin'
-
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-slate-200">
-                    <h2 className="text-2xl font-bold text-slate-900">Configurações</h2>
+                    <h2 className="text-2xl font-bold text-slate-900">Meu Perfil</h2>
                     <button
                         onClick={onClose}
                         className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
@@ -61,36 +57,10 @@ export function SettingsModal({ isOpen, onClose, profile }: SettingsModalProps) 
                     </button>
                 </div>
 
-                {/* Tabs */}
-                <div className="flex gap-0 border-b border-slate-200 px-6">
-                    <button
-                        onClick={() => setActiveTab('profile')}
-                        className={`px-4 py-3 font-semibold text-sm transition-colors border-b-2 ${
-                            activeTab === 'profile'
-                                ? 'text-indigo-600 border-indigo-600'
-                                : 'text-slate-600 border-transparent hover:text-slate-900'
-                        }`}
-                    >
-                        Meu Perfil
-                    </button>
-                    {isAdmin && (
-                        <button
-                            onClick={() => setActiveTab('users')}
-                            className={`px-4 py-3 font-semibold text-sm transition-colors border-b-2 ${
-                                activeTab === 'users'
-                                    ? 'text-indigo-600 border-indigo-600'
-                                    : 'text-slate-600 border-transparent hover:text-slate-900'
-                            }`}
-                        >
-                            Usuários
-                        </button>
-                    )}
-                </div>
-
                 {/* Content */}
                 <div className="p-6">
-                    {/* Aba Meu Perfil */}
-                    {activeTab === 'profile' && (
+                    {/* Profile Settings */}
+                    <div>
                         <div className="space-y-6">
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -159,14 +129,7 @@ export function SettingsModal({ isOpen, onClose, profile }: SettingsModalProps) 
                                 </button>
                             </div>
                         </div>
-                    )}
-
-                    {/* Aba Usuários */}
-                    {activeTab === 'users' && isAdmin && (
-                        <div>
-                            <UserManagementTable />
-                        </div>
-                    )}
+                    </div>
                 </div>
             </div>
         </div>
