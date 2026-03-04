@@ -113,8 +113,9 @@ export async function POST(request: NextRequest) {
         })
 
         if (createError) {
+            console.error('createUser error:', JSON.stringify(createError))
             return NextResponse.json(
-                { error: `Failed to create user: ${createError.message}` },
+                { error: `Failed to create user: ${createError.message || createError.code || JSON.stringify(createError)}` },
                 { status: 400 }
             )
         }
