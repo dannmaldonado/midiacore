@@ -115,19 +115,19 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Create profile entry (if not auto-created by trigger)
+        // Upsert profile entry (trigger may create it first without full_name)
         if (newUser?.id) {
-            const { error: profileCreateError } = await supabaseAdmin
+            const { error: profileUpsertError } = await supabaseAdmin
                 .from('profiles')
-                .insert({
+                .upsert({
                     id: newUser.id,
                     company_id: profile?.company_id || user.user_metadata?.company_id,
                     full_name,
                     role,
-                })
+                }, { onConflict: 'id' })
 
-            if (profileCreateError && !profileCreateError.message.includes('duplicate')) {
-                console.error('Warning: Could not create profile:', profileCreateError)
+            if (profileUpsertError) {
+                console.error('Warning: Could not upsert profile:', profileUpsertError)
             }
         }
 
