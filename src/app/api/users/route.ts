@@ -97,70 +97,30 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-        const projectRef = supabaseUrl.match(/https:\/\/(.+?)\.supabase\.co/)?.[1]
-        const tempPassword = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('hex')
+        // Create user with service role (admin API)
+        const supabaseAdmin = await createClient({ admin: true })
 
-        let newUserId: string | null = null
+        const { data: { user: newUser }, error: createError } = await supabaseAdmin.auth.admin.createUser({
+            email,
+            password: Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('hex'),
+            email_confirm: true,
+            user_metadata: { role, full_name },
+        })
 
-        if (serviceKey.startsWith('sb_secret_') && projectRef) {
-            // New Supabase Secret Key: use Management API
-            const mgmtResponse = await fetch(
-                `https://api.supabase.com/v1/projects/${projectRef}/auth/users`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${serviceKey}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        email,
-                        password: tempPassword,
-                        email_confirm: true,
-                        user_metadata: { role, full_name },
-                    }),
-                }
+        if (createError) {
+            console.error('createUser error:', JSON.stringify(createError))
+            return NextResponse.json(
+                { error: `Failed to create user: ${createError.message || createError.code || JSON.stringify(createError)}` },
+                { status: 400 }
             )
-
-            if (!mgmtResponse.ok) {
-                const errorData = await mgmtResponse.json()
-                console.error('Management API createUser error:', JSON.stringify(errorData))
-                return NextResponse.json(
-                    { error: `Failed to create user: ${errorData.message || JSON.stringify(errorData)}` },
-                    { status: 400 }
-                )
-            }
-
-            const createdUser = await mgmtResponse.json()
-            newUserId = createdUser.id
-        } else {
-            // Legacy JWT service_role key: use SDK
-            const supabaseAdmin = await createClient({ admin: true })
-            const { data: { user: newUser }, error: createError } = await supabaseAdmin.auth.admin.createUser({
-                email,
-                password: tempPassword,
-                email_confirm: true,
-                user_metadata: { role, full_name },
-            })
-
-            if (createError) {
-                console.error('createUser error:', JSON.stringify(createError))
-                return NextResponse.json(
-                    { error: `Failed to create user: ${createError.message || createError.code || JSON.stringify(createError)}` },
-                    { status: 400 }
-                )
-            }
-            newUserId = newUser?.id ?? null
         }
 
         // Create profile entry (if not auto-created by trigger)
-        if (newUserId) {
-            const supabaseAdmin = await createClient({ admin: true })
+        if (newUser?.id) {
             const { error: profileCreateError } = await supabaseAdmin
                 .from('profiles')
                 .insert({
-                    id: newUserId,
+                    id: newUser.id,
                     company_id: profile?.company_id || user.user_metadata?.company_id,
                     full_name,
                     role,
@@ -171,7 +131,7 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        return NextResponse.json({ user: { id: newUserId } }, { status: 201 })
+        return NextResponse.json({ user: newUser }, { status: 201 })
     } catch (error) {
         console.error('API error:', error)
         const message = error instanceof Error ? error.message : String(error)
