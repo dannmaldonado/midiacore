@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ShieldCheck, Loader2, Mail, Lock, ChevronRight } from 'lucide-react'
 
 export default function LoginPage() {
@@ -45,13 +46,14 @@ export default function LoginPage() {
 
             <div className="w-full max-w-md relative z-10">
                 <div className="flex flex-col items-center mb-10">
-                    <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-[22px] flex items-center justify-center text-white font-black text-2xl shadow-2xl shadow-indigo-500/30 mb-6 rotate-3 hover:rotate-0 transition-transform duration-500">
-                        M
+                    <div className="flex items-center gap-4 mb-6">
+                        <Image src="/logo-audi.jpg" width={52} height={52} alt="Audi Comunicação" className="rounded-xl object-cover shadow-lg" />
+                        <Image src="/logo-torra.png" width={110} height={44} alt="Lojas Torra" className="object-contain h-11 w-auto" />
                     </div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight font-display text-center">MidiaCore</h1>
+                    <h1 className="text-3xl font-black text-slate-900 tracking-tight font-display text-center">Lojas Torra - Mídia Mall</h1>
                     <div className="flex items-center gap-2 mt-2">
-                        <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
-                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Enterprise OS 2.0</p>
+                        <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse" />
+                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">Audi Comunicação</p>
                     </div>
                 </div>
 
@@ -153,9 +155,9 @@ export default function LoginPage() {
                 </div>
             </div>
 
-            {/* Footer versioning */}
+            {/* Footer */}
             <div className="absolute bottom-8 text-[9px] font-black text-slate-300 uppercase tracking-[0.3em]">
-                V.2.0.4-GOLDEN
+                Lojas Torra &copy; {new Date().getFullYear()} — Audi Comunicação
             </div>
         </div>
     )
