@@ -25,12 +25,15 @@ export function Sidebar() {
         <aside className="w-64 bg-slate-900 border-r border-white/5 text-white flex flex-col h-screen fixed left-0 top-0 z-20 shadow-2xl">
             <div className="p-8 pb-10">
                 <div className="flex items-center gap-3 mb-6">
-                    {/* Logo placeholder — substituir por <Image src="/logo.png" /> quando fornecido */}
-                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-black text-xs shadow-lg shadow-indigo-500/20">
-                        AC
+                    {/* Logo Audi Comunicação */}
+                    <div className="w-10 h-10 flex-shrink-0">
+                        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-10 h-10">
+                            <rect width="40" height="40" rx="10" fill="#C41E3A"/>
+                            <path d="M20 8L28 30H24.5L22.5 24.5H17.5L15.5 30H12L20 8ZM20 14L18.5 22H21.5L20 14Z" fill="white"/>
+                        </svg>
                     </div>
                     <div>
-                        <h1 className="text-xl font-bold tracking-tight font-display">Mídia Mall</h1>
+                        <h1 className="text-xl font-bold tracking-tight font-display">Lojas Torra - Mídia Mall</h1>
                         <div className="flex items-center gap-1.5">
                             <span className="w-1 h-1 bg-emerald-400 rounded-full animate-pulse" />
                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Audi Comunicação</p>

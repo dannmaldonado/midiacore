@@ -245,6 +245,14 @@ export function Header() {
                 </div>
 
                 <div className="flex items-center gap-6">
+                    {/* Logo Torra */}
+                    <div className="hidden sm:flex items-center">
+                        <svg viewBox="0 0 90 36" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-9">
+                            <path d="M6 36L0 0H90L84 36H6Z" fill="#E8521A"/>
+                            <text x="45" y="25" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="16" letterSpacing="3">TORRA</text>
+                        </svg>
+                    </div>
+
                     {/* BI Export Button (admin only) */}
                     {isAdmin && (
                         <button
