@@ -91,7 +91,7 @@ export default function ApprovalWorkflowPage() {
                 <ApprovalWorkflow
                     contractId={contractId}
                     contractValue={contract.contract_value}
-                    contractName={contract.shopping_name}
+                    contractName={contract.shopping_name || 'Contrato'}
                 />
             )}
         </div>

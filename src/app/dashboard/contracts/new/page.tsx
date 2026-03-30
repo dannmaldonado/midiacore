@@ -41,13 +41,19 @@ export default function NewContractPage() {
         notes: ''
     })
 
-    // ✅ Carregar lista de shoppings ao montar
+    // Carregar lista de shoppings filtrada por company_id
     useEffect(() => {
         const loadShoppings = async () => {
             try {
+                if (!profile?.company_id) {
+                    setShoppings([])
+                    return
+                }
+
                 const { data, error } = await supabase
                     .from('shoppings')
                     .select('id, name')
+                    .eq('company_id', profile.company_id)
                     .order('name')
 
                 if (error) throw error
@@ -61,7 +67,7 @@ export default function NewContractPage() {
         }
 
         loadShoppings()
-    }, [supabase])
+    }, [supabase, profile?.company_id])
 
     const addMediaProp = () => {
         const val = newMediaProp.trim()

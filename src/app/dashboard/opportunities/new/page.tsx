@@ -44,13 +44,19 @@ export default function NewOpportunityPage() {
         notes: ''
     })
 
-    // ✅ Carregar lista de shoppings ao montar
+    // Carregar lista de shoppings filtrada por company_id
     useEffect(() => {
         const loadShoppings = async () => {
             try {
+                if (!profile?.company_id) {
+                    setShoppings([])
+                    return
+                }
+
                 const { data, error } = await supabase
                     .from('shoppings')
                     .select('id, name')
+                    .eq('company_id', profile.company_id)
                     .order('name')
 
                 if (error) throw error
@@ -64,7 +70,7 @@ export default function NewOpportunityPage() {
         }
 
         loadShoppings()
-    }, [supabase])
+    }, [supabase, profile?.company_id])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()

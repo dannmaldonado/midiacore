@@ -21,13 +21,15 @@ export interface Profile {
 export interface Contract {
     id: string
     company_id: string
-    shopping_name: string
+    shopping_name: string | null
+    shopping_id?: string
+    shoppings?: { name: string } | null
     media_type: string
     status: 'active' | 'pending' | 'expired'
     start_date: string
     end_date: string
     contract_value: number
-    responsible_person: string
+    responsible_person?: string | null
     notes: string | null
     created_at: string
     // Story 1.1 — novos campos
@@ -44,9 +46,11 @@ export interface Contract {
 export interface Opportunity {
     id: string
     company_id: string
-    shopping_name: string
+    shopping_name: string | null
+    shopping_id?: string
+    shoppings?: { name: string } | null
     stage: string
-    responsible_person: string | null
+    responsible_person?: string | null
     notes: string | null
     created_at: string
     frequency?: string | null

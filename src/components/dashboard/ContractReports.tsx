@@ -49,11 +49,12 @@ export function ContractReports({ contracts, isAdmin }: ContractReportsProps) {
     // Top 10 shoppings
     const shoppingMap: Record<string, { total: number; count: number }> = {}
     contracts.forEach(c => {
-        if (!shoppingMap[c.shopping_name]) {
-            shoppingMap[c.shopping_name] = { total: 0, count: 0 }
+        const shoppingName = c.shopping_name || '(Sem shopping)'
+        if (!shoppingMap[shoppingName]) {
+            shoppingMap[shoppingName] = { total: 0, count: 0 }
         }
-        shoppingMap[c.shopping_name].total += c.contract_value
-        shoppingMap[c.shopping_name].count += 1
+        shoppingMap[shoppingName].total += c.contract_value
+        shoppingMap[shoppingName].count += 1
     })
 
     const top10 = Object.entries(shoppingMap)

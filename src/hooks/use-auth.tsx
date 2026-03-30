@@ -38,8 +38,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         let isMounted = true
-        // eslint-disable-next-line prefer-const
-        let timeoutId: NodeJS.Timeout | undefined
 
         const fetchProfile = async (userId: string) => {
             try {
@@ -47,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     .from('profiles')
                     .select('*')
                     .eq('id', userId)
-                    .single()
+                    .maybeSingle()
 
                 if (!error && data && isMounted) {
                     setProfile(data)
@@ -61,37 +59,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
         }
 
+        // Initialize auth state from existing session (survives page refresh)
+        const initAuth = async () => {
+            try {
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+                if (sessionError) {
+                    console.error('[Auth] Erro ao obter sessao:', sessionError.message)
+                }
+
+                if (session?.user && isMounted) {
+                    setUser(session.user)
+                    await fetchProfile(session.user.id)
+                } else if (isMounted) {
+                    setUser(null)
+                    setProfile(null)
+                }
+            } catch (err) {
+                if (isMounted) {
+                    console.error('[Auth] Erro na inicializacao:', err)
+                    setUser(null)
+                    setProfile(null)
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false)
+                }
+            }
+        }
+
+        initAuth()
+
+        // Listen for subsequent auth changes (login/logout, token refresh, other tabs)
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event: AuthChangeEvent, session: Session | null) => {
+                if (!isMounted) return
+
                 const currentUser = session?.user ?? null
+                setUser(currentUser)
 
-                if (isMounted) {
-                    setUser(currentUser)
-
-                    if (currentUser) {
-                        await fetchProfile(currentUser.id)
-                    } else {
-                        setProfile(null)
-                    }
-
-                    setLoading(false)
-                    clearTimeout(timeoutId)
+                if (currentUser) {
+                    await fetchProfile(currentUser.id)
+                } else {
+                    setProfile(null)
                 }
+
+                setLoading(false)
             }
         )
 
-        // Fallback: se auth não completar em 8 segundos, assumir não autenticado
-        // (aumentado de 3s para 8s para lidar com lock issues do Supabase)
-        timeoutId = setTimeout(() => {
-            if (isMounted) {
-                console.warn('[Auth] Timeout ao aguardar sessão')
-                setLoading(false)
-            }
-        }, 8000)
-
         return () => {
             isMounted = false
-            clearTimeout(timeoutId)
             subscription.unsubscribe()
         }
     }, [supabase])

@@ -145,7 +145,8 @@ export function ExpirationTimelineChart({ contracts }: ReportChartsProps) {
 export function ValueByShoppingChart({ contracts }: ReportChartsProps) {
     const shoppingMap: Record<string, number> = {}
     contracts.forEach(c => {
-        shoppingMap[c.shopping_name] = (shoppingMap[c.shopping_name] || 0) + c.contract_value
+        const shoppingName = c.shopping_name || '(Sem shopping)'
+        shoppingMap[shoppingName] = (shoppingMap[shoppingName] || 0) + c.contract_value
     })
 
     const data = Object.entries(shoppingMap)

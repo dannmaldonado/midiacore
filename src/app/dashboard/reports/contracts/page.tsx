@@ -30,7 +30,7 @@ export default function ContractReportsPage() {
         try {
             const { data } = await supabase
                 .from('contracts')
-                .select('*')
+                .select('*, shoppings(name)')
                 .eq('company_id', profile.company_id)
                 .order('end_date', { ascending: true })
             setContracts(data || [])
@@ -49,9 +49,10 @@ export default function ContractReportsPage() {
             result = result.filter(c => c.status === statusFilter)
         }
         if (shoppingFilter.trim()) {
-            result = result.filter(c =>
-                c.shopping_name.toLowerCase().includes(shoppingFilter.toLowerCase())
-            )
+            result = result.filter(c => {
+                const shoppingName = (c.shoppings as { name: string } | null)?.name || c.shopping_name || ''
+                return shoppingName.toLowerCase().includes(shoppingFilter.toLowerCase())
+            })
         }
         if (periodStart) {
             result = result.filter(c => c.end_date >= periodStart)
@@ -68,7 +69,7 @@ export default function ContractReportsPage() {
 
         const headers = ['Shopping', 'Tipo de Mídia', 'Início', 'Fim', 'Valor (R$)', 'Status']
         const rows = filtered.map(c => [
-            c.shopping_name,
+            (c.shoppings as { name: string } | null)?.name || c.shopping_name || '—',
             c.media_type,
             c.start_date,
             c.end_date,

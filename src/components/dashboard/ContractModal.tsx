@@ -193,10 +193,10 @@ export function ContractModal({
                                 <div>
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-tight mb-2">Shopping / Ativo</p>
                                     <button
-                                        onClick={() => copyToClipboard(formData.shopping_name, 'shopping_name')}
+                                        onClick={() => copyToClipboard(formData.shopping_name || '—', 'shopping_name')}
                                         className="group flex items-center gap-2 text-sm font-bold text-slate-900 hover:text-indigo-600 transition-colors"
                                     >
-                                        {formData.shopping_name}
+                                        {formData.shopping_name || '—'}
                                         <Copy className={`w-3.5 h-3.5 transition-all ${copiedField === 'shopping_name' ? 'text-emerald-500' : 'text-slate-300 group-hover:text-indigo-400'}`} />
                                     </button>
                                 </div>
@@ -336,10 +336,10 @@ export function ContractModal({
                             <div>
                                 <p className="text-xs font-bold text-slate-400 uppercase tracking-tight mb-2">Responsável</p>
                                 <button
-                                    onClick={() => copyToClipboard(formData.responsible_person, 'responsible_person')}
+                                    onClick={() => copyToClipboard(formData.responsible_person || '—', 'responsible_person')}
                                     className="group flex items-center gap-2 text-sm font-bold text-slate-900 hover:text-indigo-600 transition-colors"
                                 >
-                                    {formData.responsible_person}
+                                    {formData.responsible_person || '—'}
                                     <Copy className={`w-3.5 h-3.5 transition-all ${copiedField === 'responsible_person' ? 'text-emerald-500' : 'text-slate-300 group-hover:text-indigo-400'}`} />
                                 </button>
                             </div>
@@ -376,7 +376,7 @@ export function ContractModal({
                 <div className="sticky top-0 p-6 border-b border-slate-100 bg-white/80 backdrop-blur-sm flex items-center justify-between gap-4">
                     <div className="flex-1 min-w-0">
                         <h3 className="text-xl font-black text-slate-900 font-display truncate">
-                            Editar: {formData.shopping_name}
+                            Editar: {formData.shopping_name || '—'}
                         </h3>
                     </div>
 
@@ -414,8 +414,8 @@ export function ContractModal({
                             </label>
                             <input
                                 type="text"
-                                value={formData.shopping_name}
-                                onChange={(e) => handleInputChange('shopping_name', e.target.value)}
+                                value={formData.shopping_name || ''}
+                                onChange={(e) => handleInputChange('shopping_name', e.target.value || null)}
                                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all"
                             />
                         </div>
@@ -601,8 +601,8 @@ export function ContractModal({
                             </label>
                             <input
                                 type="text"
-                                value={formData.responsible_person}
-                                onChange={(e) => handleInputChange('responsible_person', e.target.value)}
+                                value={formData.responsible_person || ''}
+                                onChange={(e) => handleInputChange('responsible_person', e.target.value || null)}
                                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all"
                             />
                         </div>

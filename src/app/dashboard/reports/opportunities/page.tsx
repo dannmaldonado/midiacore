@@ -38,7 +38,7 @@ export default function OpportunityReportsPage() {
         try {
             const { data } = await supabase
                 .from('opportunities')
-                .select('*')
+                .select('*, shoppings(name)')
                 .eq('company_id', profile.company_id)
                 .order('created_at', { ascending: false })
             setOpportunities(data || [])
@@ -57,9 +57,10 @@ export default function OpportunityReportsPage() {
             result = result.filter(o => o.stage === stageFilter)
         }
         if (shoppingFilter.trim()) {
-            result = result.filter(o =>
-                o.shopping_name.toLowerCase().includes(shoppingFilter.toLowerCase())
-            )
+            result = result.filter(o => {
+                const shoppingName = (o.shoppings as { name: string } | null)?.name || o.shopping_name || ''
+                return shoppingName.toLowerCase().includes(shoppingFilter.toLowerCase())
+            })
         }
         if (periodStart) {
             result = result.filter(o => o.created_at >= periodStart)
@@ -74,11 +75,10 @@ export default function OpportunityReportsPage() {
     const handleExportCSV = () => {
         if (!isAdmin) return
 
-        const headers = ['Shopping', 'Stage', 'Responsável', 'Frequência', 'Social Media Plan', 'Nova Mídia', 'Criado em']
+        const headers = ['Shopping', 'Stage', 'Frequência', 'Social Media Plan', 'Nova Mídia', 'Criado em']
         const rows = filtered.map(o => [
-            o.shopping_name,
+            (o.shoppings as { name: string } | null)?.name || o.shopping_name || '—',
             o.stage,
-            o.responsible_person || '',
             o.frequency || '',
             o.social_media_plan || '',
             o.new_media_target || '',

@@ -25,7 +25,7 @@ export default function ContractsPage() {
 
             const { data, error } = await supabase
                 .from('contracts')
-                .select('*')
+                .select('*, shoppings(name)')
                 .eq('company_id', profile.company_id)
                 .order('created_at', { ascending: false })
 
@@ -40,9 +40,9 @@ export default function ContractsPage() {
 
     const filteredContracts = useMemo(() => {
         return contracts.filter(contract => {
+            const shoppingName = (contract.shoppings as { name: string } | null)?.name || contract.shopping_name || ''
             const matchesSearch =
-                contract.shopping_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                contract.responsible_person.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                shoppingName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (contract.notes && contract.notes.toLowerCase().includes(searchTerm.toLowerCase()))
 
             const matchesStatus = statusFilter === 'all' || contract.status === statusFilter
@@ -147,7 +147,9 @@ export default function ContractsPage() {
                                     <tr key={contract.id} onClick={() => setSelectedContract(contract)} className="hover:bg-slate-50/80 transition-all group cursor-pointer">
                                         <td className="px-8 py-6">
                                             <div className="flex flex-col gap-1.5">
-                                                <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase text-sm">{contract.shopping_name}</span>
+                                                <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors uppercase text-sm">
+                                                    {(contract.shoppings as { name: string } | null)?.name || contract.shopping_name || '—'}
+                                                </span>
                                                 <span className="text-[11px] text-slate-400 font-bold tracking-tight uppercase">{contract.media_type}</span>
                                                 <div className="flex items-center gap-2 flex-wrap">
                                                     {contract.pending_quotes && (
@@ -170,7 +172,9 @@ export default function ContractsPage() {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-6 text-slate-600 text-sm font-bold">{contract.responsible_person}</td>
+                                        <td className="px-8 py-6 text-slate-600 text-sm font-bold">
+                                            <span className="text-slate-300">—</span>
+                                        </td>
                                         <td className="px-8 py-6 hidden lg:table-cell">
                                             <span className="text-[11px] text-slate-500 font-medium">
                                                 {contract.negotiation || <span className="text-slate-300">—</span>}
