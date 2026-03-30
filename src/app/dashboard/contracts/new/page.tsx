@@ -9,9 +9,9 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Save, Loader2, FileText, BadgeDollarSign, Calendar, Users, Tag, X, Link2, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 
-interface User {
+interface Shopping {
     id: string
-    email: string
+    name: string
 }
 
 export default function NewContractPage() {
@@ -22,11 +22,11 @@ export default function NewContractPage() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [newMediaProp, setNewMediaProp] = useState('')
-    const [users, setUsers] = useState<User[]>([])
-    const [loadingUsers, setLoadingUsers] = useState(true)
+    const [shoppings, setShoppings] = useState<Shopping[]>([])
+    const [loadingShoppings, setLoadingShoppings] = useState(true)
 
     const [formData, setFormData] = useState({
-        shopping_name: '',
+        shopping_id: '',
         media_type: '',
         media_properties: [] as string[],
         status: 'pending' as 'active' | 'pending' | 'expired',
@@ -37,31 +37,30 @@ export default function NewContractPage() {
         start_date: '',
         end_date: '',
         negotiation: '',
-        responsible_person: '',
         comments: '',
         notes: ''
     })
 
-    // ✅ Carregar lista de usuários ao montar
+    // ✅ Carregar lista de shoppings ao montar
     useEffect(() => {
-        const loadUsers = async () => {
+        const loadShoppings = async () => {
             try {
                 const { data, error } = await supabase
-                    .from('profiles')
-                    .select('id, email')
-                    .order('email')
+                    .from('shoppings')
+                    .select('id, name')
+                    .order('name')
 
                 if (error) throw error
-                setUsers(data || [])
+                setShoppings(data || [])
             } catch (err) {
-                console.error('Erro ao carregar usuários:', err)
-                setError('Erro ao carregar lista de responsáveis')
+                console.error('Erro ao carregar shoppings:', err)
+                setError('Erro ao carregar lista de shoppings')
             } finally {
-                setLoadingUsers(false)
+                setLoadingShoppings(false)
             }
         }
 
-        loadUsers()
+        loadShoppings()
     }, [supabase])
 
     const addMediaProp = () => {
@@ -84,8 +83,8 @@ export default function NewContractPage() {
             return
         }
 
-        if (!formData.responsible_person) {
-            setError('Erro: Selecione um responsável para prosseguir.')
+        if (!formData.shopping_id) {
+            setError('Erro: Selecione um shopping/mídia para prosseguir.')
             return
         }
 
@@ -98,7 +97,7 @@ export default function NewContractPage() {
                 .from('contracts')
                 .insert([{
                     company_id: profile.company_id,
-                    shopping_name: formData.shopping_name,
+                    shopping_id: formData.shopping_id,
                     media_type: formData.media_type,
                     media_properties: formData.media_properties.length > 0 ? formData.media_properties : null,
                     status: formData.status,
@@ -109,7 +108,6 @@ export default function NewContractPage() {
                     start_date: formData.start_date,
                     end_date: formData.end_date,
                     negotiation: formData.negotiation || null,
-                    responsible_person: formData.responsible_person,
                     comments: formData.comments || null,
                     notes: formData.notes || null,
                 }])
@@ -153,14 +151,21 @@ export default function NewContractPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-wide">Shopping / Mídia *</label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={formData.shopping_name}
-                                    onChange={(e) => setFormData({ ...formData, shopping_name: e.target.value })}
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all font-bold text-slate-700"
-                                    placeholder="Ex: Shopping Iguatemi"
-                                />
+                                <div className="relative">
+                                    <select
+                                        required
+                                        value={formData.shopping_id}
+                                        onChange={(e) => setFormData({ ...formData, shopping_id: e.target.value })}
+                                        disabled={loadingShoppings}
+                                        className="w-full px-4 py-3 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all font-bold text-slate-700 cursor-pointer disabled:opacity-50 appearance-none"
+                                    >
+                                        <option value="">— Selecione um shopping/mídia —</option>
+                                        {shoppings.map((shopping) => (
+                                            <option key={shopping.id} value={shopping.id}>{shopping.name}</option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-wide">Tipo de Mídia</label>
@@ -322,29 +327,11 @@ export default function NewContractPage() {
                         </div>
                     </div>
 
-                    {/* 5. Stakeholder & Notas */}
+                    {/* 5. Notas */}
                     <div className="space-y-6">
                         <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
                             <Users className="w-4 h-4 text-brand-slate" />
-                            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Stakeholder & Notas</h3>
-                        </div>
-                        <div>
-                            <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-wide">Gestor Responsável *</label>
-                            <div className="relative">
-                                <select
-                                    required
-                                    value={formData.responsible_person}
-                                    onChange={(e) => setFormData({ ...formData, responsible_person: e.target.value })}
-                                    disabled={loadingUsers}
-                                    className="w-full px-4 py-3 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all font-bold text-slate-700 cursor-pointer disabled:opacity-50 appearance-none"
-                                >
-                                    <option value="">— Selecione um responsável —</option>
-                                    {users.map((user) => (
-                                        <option key={user.id} value={user.email}>{user.email}</option>
-                                    ))}
-                                </select>
-                                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                            </div>
+                            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Notas</h3>
                         </div>
                         <div>
                             <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-wide">Comentários</label>

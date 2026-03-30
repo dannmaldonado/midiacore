@@ -19,9 +19,9 @@ const STAGE_OPTIONS = [
 
 const FREQUENCY_OPTIONS = ['Diário', 'Semanal', 'Mensal', 'Sob demanda']
 
-interface User {
+interface Shopping {
     id: string
-    email: string
+    name: string
 }
 
 export default function NewOpportunityPage() {
@@ -31,40 +31,39 @@ export default function NewOpportunityPage() {
 
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
-    const [users, setUsers] = useState<User[]>([])
-    const [loadingUsers, setLoadingUsers] = useState(true)
+    const [shoppings, setShoppings] = useState<Shopping[]>([])
+    const [loadingShoppings, setLoadingShoppings] = useState(true)
 
     const [formData, setFormData] = useState({
-        shopping_name: '',
+        shopping_id: '',
         frequency: '',
         social_media_plan: '',
         new_media_target: '',
         events_plan: '',
         stage: 'Em negociação',
-        responsible_person: '',
         notes: ''
     })
 
-    // ✅ Carregar lista de usuários ao montar
+    // ✅ Carregar lista de shoppings ao montar
     useEffect(() => {
-        const loadUsers = async () => {
+        const loadShoppings = async () => {
             try {
                 const { data, error } = await supabase
-                    .from('profiles')
-                    .select('id, email')
-                    .order('email')
+                    .from('shoppings')
+                    .select('id, name')
+                    .order('name')
 
                 if (error) throw error
-                setUsers(data || [])
+                setShoppings(data || [])
             } catch (err) {
-                console.error('Erro ao carregar usuários:', err)
-                setError('Erro ao carregar lista de responsáveis')
+                console.error('Erro ao carregar shoppings:', err)
+                setError('Erro ao carregar lista de shoppings')
             } finally {
-                setLoadingUsers(false)
+                setLoadingShoppings(false)
             }
         }
 
-        loadUsers()
+        loadShoppings()
     }, [supabase])
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -76,8 +75,8 @@ export default function NewOpportunityPage() {
             return
         }
 
-        if (!formData.responsible_person) {
-            setError('Erro: Selecione um responsável para prosseguir.')
+        if (!formData.shopping_id) {
+            setError('Erro: Selecione um shopping/mídia para prosseguir.')
             return
         }
 
@@ -88,13 +87,12 @@ export default function NewOpportunityPage() {
         try {
             const payload = {
                 company_id: profile.company_id,
-                shopping_name: formData.shopping_name,
+                shopping_id: formData.shopping_id,
                 frequency: formData.frequency || null,
                 social_media_plan: formData.social_media_plan.trim() || null,
                 new_media_target: formData.new_media_target.trim() || null,
                 events_plan: formData.events_plan.trim() || null,
                 stage: formData.stage,
-                responsible_person: formData.responsible_person,
                 notes: formData.notes.trim() || null
             }
             console.log('Payload enviado:', payload)
@@ -145,14 +143,21 @@ export default function NewOpportunityPage() {
 
                         <div>
                             <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-wide">Shopping / Mídia *</label>
-                            <input
-                                type="text"
-                                required
-                                value={formData.shopping_name}
-                                onChange={(e) => setFormData({ ...formData, shopping_name: e.target.value })}
-                                placeholder="Ex: Shopping Tietê Plaza"
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all font-bold text-slate-700"
-                            />
+                            <div className="relative">
+                                <select
+                                    required
+                                    value={formData.shopping_id}
+                                    onChange={(e) => setFormData({ ...formData, shopping_id: e.target.value })}
+                                    disabled={loadingShoppings}
+                                    className="w-full px-4 py-3 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all font-bold text-slate-700 cursor-pointer disabled:opacity-50 appearance-none"
+                                >
+                                    <option value="">— Selecione um shopping/mídia —</option>
+                                    {shoppings.map((shopping) => (
+                                        <option key={shopping.id} value={shopping.id}>{shopping.name}</option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -222,30 +227,11 @@ export default function NewOpportunityPage() {
                         </div>
                     </div>
 
-                    {/* Seção 3: Stakeholder */}
+                    {/* Seção 3: Notas */}
                     <div className="space-y-6">
                         <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
                             <Users className="w-4 h-4 text-slate-400" />
-                            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Stakeholder & Notas</h3>
-                        </div>
-
-                        <div>
-                            <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-wide">Responsável *</label>
-                            <div className="relative">
-                                <select
-                                    required
-                                    value={formData.responsible_person}
-                                    onChange={(e) => setFormData({ ...formData, responsible_person: e.target.value })}
-                                    disabled={loadingUsers}
-                                    className="w-full px-4 py-3 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all font-bold text-slate-700 cursor-pointer disabled:opacity-50 appearance-none"
-                                >
-                                    <option value="">— Selecione um responsável —</option>
-                                    {users.map((user) => (
-                                        <option key={user.id} value={user.email}>{user.email}</option>
-                                    ))}
-                                </select>
-                                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                            </div>
+                            <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Notas</h3>
                         </div>
 
                         <div>
