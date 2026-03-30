@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Save, Loader2, FileText, BadgeDollarSign, Calendar, Users, Tag, X, Link2 } from 'lucide-react'
+import { ArrowLeft, Save, Loader2, FileText, BadgeDollarSign, Calendar, Users, Tag, X, Link2, ChevronDown } from 'lucide-react'
 import Link from 'next/link'
 
 interface User {
@@ -330,18 +330,21 @@ export default function NewContractPage() {
                         </div>
                         <div>
                             <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-wide">Gestor Responsável *</label>
-                            <select
-                                required
-                                value={formData.responsible_person}
-                                onChange={(e) => setFormData({ ...formData, responsible_person: e.target.value })}
-                                disabled={loadingUsers}
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all font-bold text-slate-700 appearance-none cursor-pointer disabled:opacity-50"
-                            >
-                                <option value="">— Selecione um responsável —</option>
-                                {users.map((user) => (
-                                    <option key={user.id} value={user.email}>{user.email}</option>
-                                ))}
-                            </select>
+                            <div className="relative">
+                                <select
+                                    required
+                                    value={formData.responsible_person}
+                                    onChange={(e) => setFormData({ ...formData, responsible_person: e.target.value })}
+                                    disabled={loadingUsers}
+                                    className="w-full px-4 py-3 pr-10 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all font-bold text-slate-700 cursor-pointer disabled:opacity-50 appearance-none"
+                                >
+                                    <option value="">— Selecione um responsável —</option>
+                                    {users.map((user) => (
+                                        <option key={user.id} value={user.email}>{user.email}</option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                            </div>
                         </div>
                         <div>
                             <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-wide">Comentários</label>
