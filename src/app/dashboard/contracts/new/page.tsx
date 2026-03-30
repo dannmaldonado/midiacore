@@ -48,8 +48,14 @@ export default function NewContractPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!profile?.company_id) return
 
+        // ✅ Validate BEFORE updating state
+        if (!profile?.company_id) {
+            setError('Erro: Perfil incompleto. Contate o administrador.')
+            return
+        }
+
+        // ✅ Update state AFTER validation
         setLoading(true)
         setError(null)
 

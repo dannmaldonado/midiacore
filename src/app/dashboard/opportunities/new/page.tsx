@@ -40,8 +40,14 @@ export default function NewOpportunityPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!profile?.company_id) return
 
+        // ✅ Validate BEFORE updating state
+        if (!profile?.company_id) {
+            setError('Erro: Perfil incompleto. Contate o administrador.')
+            return
+        }
+
+        // ✅ Update state AFTER validation
         setSaving(true)
         setError(null)
 
