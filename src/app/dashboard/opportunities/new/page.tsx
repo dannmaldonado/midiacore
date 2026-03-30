@@ -2,9 +2,8 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useAuth } from '@/hooks/use-auth'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Save, Loader2, TrendingUp, Users } from 'lucide-react'
 import Link from 'next/link'
@@ -19,13 +18,19 @@ const STAGE_OPTIONS = [
 
 const FREQUENCY_OPTIONS = ['Diário', 'Semanal', 'Mensal', 'Sob demanda']
 
+interface Company {
+    id: string
+    company_name: string
+}
+
 export default function NewOpportunityPage() {
-    const { profile } = useAuth()
     const router = useRouter()
     const supabase = createClient()
 
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [companies, setCompanies] = useState<Company[]>([])
+    const [loadingCompanies, setLoadingCompanies] = useState(true)
 
     const [formData, setFormData] = useState({
         shopping_name: '',
@@ -35,15 +40,38 @@ export default function NewOpportunityPage() {
         events_plan: '',
         stage: 'Em negociação',
         responsible_person: '',
-        notes: ''
+        notes: '',
+        company_id: ''
     })
+
+    // ✅ Carregar lista de companies ao montar
+    useEffect(() => {
+        const loadCompanies = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('companies')
+                    .select('id, company_name')
+                    .order('company_name')
+
+                if (error) throw error
+                setCompanies(data || [])
+            } catch (err) {
+                console.error('Erro ao carregar companies:', err)
+                setError('Erro ao carregar lista de clientes')
+            } finally {
+                setLoadingCompanies(false)
+            }
+        }
+
+        loadCompanies()
+    }, [supabase])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        // ✅ Validate BEFORE updating state
-        if (!profile?.company_id) {
-            setError('Erro: Perfil incompleto. Contate o administrador.')
+        // ✅ Validate that company is selected
+        if (!formData.company_id) {
+            setError('Erro: Selecione um cliente/shopping para prosseguir.')
             return
         }
 
@@ -55,7 +83,7 @@ export default function NewOpportunityPage() {
             const { error } = await supabase
                 .from('opportunities')
                 .insert({
-                    company_id: profile.company_id,
+                    company_id: formData.company_id,
                     shopping_name: formData.shopping_name,
                     frequency: formData.frequency || null,
                     social_media_plan: formData.social_media_plan.trim() || null,
@@ -104,7 +132,23 @@ export default function NewOpportunityPage() {
                         </div>
 
                         <div>
-                            <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-wide">Shopping / Cliente *</label>
+                            <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-wide">Cliente / Empresa *</label>
+                            <select
+                                required
+                                value={formData.company_id}
+                                onChange={(e) => setFormData({ ...formData, company_id: e.target.value })}
+                                disabled={loadingCompanies}
+                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all font-bold text-slate-700 appearance-none cursor-pointer disabled:opacity-50"
+                            >
+                                <option value="">— Selecione um cliente —</option>
+                                {companies.map((company) => (
+                                    <option key={company.id} value={company.id}>{company.company_name}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-wide">Shopping / Mídia *</label>
                             <input
                                 type="text"
                                 required

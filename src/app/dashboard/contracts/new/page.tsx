@@ -2,21 +2,26 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useAuth } from '@/hooks/use-auth'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Save, Loader2, FileText, BadgeDollarSign, Calendar, Users, Tag, X, Link2 } from 'lucide-react'
 import Link from 'next/link'
 
+interface Company {
+    id: string
+    company_name: string
+}
+
 export default function NewContractPage() {
-    const { profile } = useAuth()
     const router = useRouter()
     const supabase = createClient()
 
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [newMediaProp, setNewMediaProp] = useState('')
+    const [companies, setCompanies] = useState<Company[]>([])
+    const [loadingCompanies, setLoadingCompanies] = useState(true)
 
     const [formData, setFormData] = useState({
         shopping_name: '',
@@ -32,8 +37,31 @@ export default function NewContractPage() {
         negotiation: '',
         responsible_person: '',
         comments: '',
-        notes: ''
+        notes: '',
+        company_id: ''
     })
+
+    // ✅ Carregar lista de companies ao montar
+    useEffect(() => {
+        const loadCompanies = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('companies')
+                    .select('id, company_name')
+                    .order('company_name')
+
+                if (error) throw error
+                setCompanies(data || [])
+            } catch (err) {
+                console.error('Erro ao carregar companies:', err)
+                setError('Erro ao carregar lista de clientes')
+            } finally {
+                setLoadingCompanies(false)
+            }
+        }
+
+        loadCompanies()
+    }, [supabase])
 
     const addMediaProp = () => {
         const val = newMediaProp.trim()
@@ -49,9 +77,9 @@ export default function NewContractPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        // ✅ Validate BEFORE updating state
-        if (!profile?.company_id) {
-            setError('Erro: Perfil incompleto. Contate o administrador.')
+        // ✅ Validate that company is selected
+        if (!formData.company_id) {
+            setError('Erro: Selecione um cliente/empresa para prosseguir.')
             return
         }
 
@@ -63,7 +91,7 @@ export default function NewContractPage() {
             const { error } = await supabase
                 .from('contracts')
                 .insert([{
-                    company_id: profile.company_id,
+                    company_id: formData.company_id,
                     shopping_name: formData.shopping_name,
                     media_type: formData.media_type,
                     media_properties: formData.media_properties.length > 0 ? formData.media_properties : null,
@@ -116,9 +144,24 @@ export default function NewContractPage() {
                             <FileText className="w-4 h-4 text-indigo-500" />
                             <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Dados do Ativo</h3>
                         </div>
+                        <div>
+                            <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-wide">Cliente / Empresa *</label>
+                            <select
+                                required
+                                value={formData.company_id}
+                                onChange={(e) => setFormData({ ...formData, company_id: e.target.value })}
+                                disabled={loadingCompanies}
+                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/30 transition-all font-bold text-slate-700 appearance-none cursor-pointer disabled:opacity-50"
+                            >
+                                <option value="">— Selecione um cliente —</option>
+                                {companies.map((company) => (
+                                    <option key={company.id} value={company.id}>{company.company_name}</option>
+                                ))}
+                            </select>
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-wide">Shopping / Cliente</label>
+                                <label className="block text-[11px] font-black text-slate-500 mb-2 uppercase tracking-wide">Shopping / Mídia *</label>
                                 <input
                                     type="text"
                                     required
