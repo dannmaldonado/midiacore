@@ -86,21 +86,27 @@ export default function NewOpportunityPage() {
         setError(null)
 
         try {
+            const payload = {
+                company_id: profile.company_id,
+                shopping_name: formData.shopping_name,
+                frequency: formData.frequency || null,
+                social_media_plan: formData.social_media_plan.trim() || null,
+                new_media_target: formData.new_media_target.trim() || null,
+                events_plan: formData.events_plan.trim() || null,
+                stage: formData.stage,
+                responsible_person: formData.responsible_person,
+                notes: formData.notes.trim() || null
+            }
+            console.log('Payload enviado:', payload)
+
             const { error } = await supabase
                 .from('opportunities')
-                .insert({
-                    company_id: profile.company_id,
-                    shopping_name: formData.shopping_name,
-                    frequency: formData.frequency || null,
-                    social_media_plan: formData.social_media_plan.trim() || null,
-                    new_media_target: formData.new_media_target.trim() || null,
-                    events_plan: formData.events_plan.trim() || null,
-                    stage: formData.stage,
-                    responsible_person: formData.responsible_person,
-                    notes: formData.notes.trim() || null
-                })
+                .insert(payload)
 
-            if (error) throw error
+            if (error) {
+                console.error('Erro Supabase:', error)
+                throw error
+            }
 
             router.push('/dashboard/opportunities')
             router.refresh()
